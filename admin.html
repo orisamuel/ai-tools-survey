@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0f14">
+<title>סקר AI — דאשבורד אדמין</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="utils.js"></script>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-progress" id="loadingProgress">טוען תשובות...</div>
+</div>
+
+<div id="mainContent" class="wide">
+
+  <header class="app-header">
+    <div>
+      <div class="app-title">דאשבורד אדמין</div>
+      <div class="app-subtitle">תוצאות סקר שימוש בכלי AI · ארבעים ושתיים</div>
+    </div>
+    <div class="header-actions">
+      <a class="btn btn-ghost" href="javascript:loadData()">🔄 רענן</a>
+      <a class="btn btn-ghost" href="javascript:exportCsv()">⬇ ייצוא CSV</a>
+      <a class="btn btn-ghost" id="sheetLink" target="_blank">📊 פתח גיליון</a>
+      <a class="btn btn-ghost" href="javascript:logout()">יציאה</a>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+    </div>
+  </header>
+
+  <!-- Top stats -->
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="tools" onclick="switchTab('tools')">כלים — סיכום</button>
+    <button class="tab" data-tab="responses" onclick="switchTab('responses')">תשובות פרטניות</button>
+    <button class="tab" data-tab="pain" onclick="switchTab('pain')">כאבים ותשלומים</button>
+    <button class="tab" data-tab="free" onclick="switchTab('free')">טקסט חופשי</button>
+  </div>
+
+  <!-- Tab: tools summary -->
+  <div class="tab-panel" id="panel-tools">
+    <div class="section">
+      <h3 style="margin-bottom:14px;">סיכום לפי כלי</h3>
+      <div style="overflow-x:auto;">
+        <table class="tool-stats-table" id="toolStatsTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: responses -->
+  <div class="tab-panel" id="panel-responses" style="display:none;">
+    <div class="section">
+      <div style="display:flex; gap:12px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+        <h3 style="margin:0;">תשובות פרטניות</h3>
+        <input type="text" class="form-input" id="searchInput" placeholder="חיפוש לפי שם/תפקיד/צוות..."
+               style="max-width:320px;" oninput="renderResponses()">
+      </div>
+      <div id="responsesList"></div>
+    </div>
+  </div>
+
+  <!-- Tab: pain points + payments -->
+  <div class="tab-panel" id="panel-pain" style="display:none;">
+    <div class="section">
+      <h3 style="margin-bottom:14px;">פוינטים כואבים — דירוג לפי כמות אזכורים</h3>
+      <table class="tool-stats-table" id="painTable"></table>
+    </div>
+    <div class="section" style="margin-top:18px;">
+      <h3 style="margin-bottom:14px;">מנויים מהכיס — מה אנשים משלמים מעצמם</h3>
+      <div id="paymentsList"></div>
+    </div>
+    <div class="section" style="margin-top:18px;">
+      <h3 style="margin-bottom:14px;">כלי חלום — מה אנשים רוצים ואין להם</h3>
+      <div id="dreamList"></div>
+    </div>
+  </div>
+
+  <!-- Tab: free text -->
+  <div class="tab-panel" id="panel-free" style="display:none;">
+    <div class="section">
+      <h3 style="margin-bottom:14px;">טקסט חופשי</h3>
+      <div id="freeTextList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+requireAuth();
+initTheme();
+if (CONFIG.SHEETS_URL && !CONFIG.SHEETS_URL.includes('PASTE_')) {
+  document.getElementById('sheetLink').href = CONFIG.SHEETS_URL;
+} else {
+  document.getElementById('sheetLink').style.display = 'none';
+}
+warmupServer();
+
+let DATA = { responses: [], tools: [], core_tools: [] };
+
+const USAGE_WEIGHTS = { never: 0, rarely: 1, weekly: 2, daily: 3, heavy: 4 };
+const USAGE_HEBREW  = { never: 'לא משתמש', rarely: 'נדיר', weekly: 'שבועי', daily: 'יומי', heavy: 'כבד' };
+
+async function loadData() {
+  updateLoadingProgress('טוען תשובות...');
+  try {
+    const res = await apiCall('getAllResponses');
+    if (!res.success) throw new Error(res.message || 'שגיאה');
+    DATA = res;
+    renderAll();
+  } catch (e) {
+    showToast('שגיאה בטעינה: ' + e.message, 'error', 6000);
+  } finally {
+    hideLoadingScreen();
+  }
+}
+
+function renderAll() {
+  renderStats();
+  renderToolStats();
+  renderResponses();
+  renderPain();
+  renderPayments();
+  renderDream();
+  renderFreeText();
+}
+
+// ── Top KPIs ───────────────────────────────────────────
+function renderStats() {
+  const totalResponses = DATA.responses.length;
+  const totalTools = DATA.tools.filter(t => USAGE_WEIGHTS[t.usage_level] > 0).length;
+  const uniqueTools = new Set(DATA.tools.filter(t => USAGE_WEIGHTS[t.usage_level] > 0).map(t => t.tool_name)).size;
+  const paidFromPocketCount = DATA.responses.filter(r => {
+    const v = (r.paid_from_pocket || '').toLowerCase().trim();
+    return v && v !== 'אין' && v !== 'none' && v !== 'לא' && v !== '-';
+  }).length;
+
+  const cards = [
+    { label: 'תשובות', value: totalResponses, sub: 'סך הכל' },
+    { label: 'כלים בשימוש', value: uniqueTools, sub: 'כלים ייחודיים שמישהו השתמש בהם' },
+    { label: 'מנויים מהכיס', value: paidFromPocketCount, sub: 'עובדים שמשלמים מעצמם' },
+    { label: 'סך שימושים', value: totalTools, sub: 'צמדים עובד×כלי' },
+  ];
+
+  document.getElementById('statsGrid').innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.value}</div>
+      <div class="stat-sub">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+// ── Tool stats table ───────────────────────────────────
+function renderToolStats() {
+  // Aggregate per tool_name
+  const agg = {};
+  DATA.tools.forEach(t => {
+    const active = USAGE_WEIGHTS[t.usage_level] > 0;
+    if (!agg[t.tool_name]) {
+      agg[t.tool_name] = {
+        name: t.tool_name,
+        is_custom: t.is_custom,
+        users: 0, total: 0,
+        eff_sum: 0, eff_count: 0,
+        output_sum: 0, output_count: 0,
+        usage_distribution: { rarely:0, weekly:0, daily:0, heavy:0 }
+      };
+    }
+    const a = agg[t.tool_name];
+    a.total++;
+    if (active) {
+      a.users++;
+      a.usage_distribution[t.usage_level] = (a.usage_distribution[t.usage_level] || 0) + 1;
+      if (t.effectiveness) { a.eff_sum += t.effectiveness; a.eff_count++; }
+      if (t.daily_output)  { a.output_sum += t.daily_output; a.output_count++; }
+    }
+  });
+
+  const totalRespondents = DATA.responses.length || 1;
+  const list = Object.values(agg).sort((a, b) => b.users - a.users);
+
+  const maxUsers = Math.max(1, ...list.map(t => t.users));
+
+  let html = `
+    <thead>
+      <tr>
+        <th>כלי</th>
+        <th>משתמשים</th>
+        <th>אחוז מהמשרד</th>
+        <th>יעילות ממוצעת</th>
+        <th>תוצרים/יום ממוצע</th>
+        <th>פילוח תדירות</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+  list.forEach(t => {
+    const pct = totalRespondents ? Math.round(t.users / totalRespondents * 100) : 0;
+    const avgEff = t.eff_count ? (t.eff_sum / t.eff_count).toFixed(1) : '—';
+    const avgOutput = t.output_count ? Math.round(t.output_sum / t.output_count) : '—';
+    const barWidth = Math.round(t.users / maxUsers * 100);
+    const dist = ['heavy', 'daily', 'weekly', 'rarely']
+      .filter(k => t.usage_distribution[k])
+      .map(k => `<span class="tag">${USAGE_HEBREW[k]}: ${t.usage_distribution[k]}</span>`)
+      .join('') || '—';
+    const star = t.eff_count ? '⭐' : '';
+    const customTag = t.is_custom ? ' <span class="tag accent">מותאם</span>' : '';
+    html += `
+      <tr>
+        <td><strong>${escapeHtml(t.name)}</strong>${customTag}</td>
+        <td>${t.users}</td>
+        <td>${pct}% <span class="bar" style="width:${barWidth}px;"></span></td>
+        <td>${avgEff} ${star}</td>
+        <td>${avgOutput}</td>
+        <td>${dist}</td>
+      </tr>
+    `;
+  });
+  html += '</tbody>';
+  document.getElementById('toolStatsTable').innerHTML = html;
+}
+
+// ── Individual responses ───────────────────────────────
+function renderResponses() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const list = DATA.responses.filter(r =>
+    !search ||
+    (r.name + ' ' + r.role + ' ' + r.team + ' ' + r.ai_level).toLowerCase().includes(search)
+  );
+
+  if (!list.length) {
+    document.getElementById('responsesList').innerHTML =
+      '<p style="color:var(--text-muted);">אין תשובות.</p>';
+    return;
+  }
+
+  document.getElementById('responsesList').innerHTML = list.map(r => {
+    const myTools = DATA.tools
+      .filter(t => t.response_id === r.id && USAGE_WEIGHTS[t.usage_level] > 0)
+      .sort((a, b) => USAGE_WEIGHTS[b.usage_level] - USAGE_WEIGHTS[a.usage_level]);
+    const toolTags = myTools.map(t =>
+      `<span class="tag accent">${escapeHtml(t.tool_name)} · ${USAGE_HEBREW[t.usage_level] || ''} · ★${t.effectiveness}</span>`
+    ).join('');
+
+    return `
+      <div class="response-row">
+        <div class="response-head">
+          <div>
+            <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
+            <div class="response-meta">${escapeHtml(r.team || '—')} · רמת AI: ${escapeHtml(r.ai_level || '—')} · ${escapeHtml(r.timestamp)}</div>
+          </div>
+        </div>
+        <div class="response-detail" style="margin-top:8px;">
+          <strong>כלים פעילים:</strong> ${toolTags || '<span style="color:var(--text-muted);">לא סומנו</span>'}
+        </div>
+        ${r.paid_from_pocket ? `<div class="response-detail" style="margin-top:6px;"><strong>מהכיס:</strong> ${escapeHtml(r.paid_from_pocket)}</div>` : ''}
+        ${r.pain_points ? `<div class="response-detail" style="margin-top:6px;"><strong>כאבים:</strong> ${escapeHtml(r.pain_points)}</div>` : ''}
+        ${r.dream_tool ? `<div class="response-detail" style="margin-top:6px;"><strong>חולם על:</strong> ${escapeHtml(r.dream_tool)}</div>` : ''}
+        ${r.free_text ? `<div class="response-detail" style="margin-top:6px;"><strong>חופשי:</strong> ${escapeHtml(r.free_text)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Pain points aggregation ────────────────────────────
+function renderPain() {
+  const counts = {};
+  DATA.responses.forEach(r => {
+    if (!r.pain_points) return;
+    r.pain_points.split('|').map(s => s.trim()).filter(Boolean).forEach(p => {
+      counts[p] = (counts[p] || 0) + 1;
+    });
+  });
+  const list = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (!list.length) {
+    document.getElementById('painTable').innerHTML = '<tbody><tr><td>אין נתונים.</td></tr></tbody>';
+    return;
+  }
+  const max = list[0][1];
+  document.getElementById('painTable').innerHTML = `
+    <thead><tr><th>כאב</th><th>אזכורים</th><th></th></tr></thead>
+    <tbody>
+      ${list.map(([p, c]) => `
+        <tr>
+          <td>${escapeHtml(p)}</td>
+          <td><strong>${c}</strong></td>
+          <td><span class="bar" style="width:${Math.round(c / max * 200)}px;"></span></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+}
+
+function renderPayments() {
+  const list = DATA.responses
+    .filter(r => {
+      const v = (r.paid_from_pocket || '').toLowerCase().trim();
+      return v && v !== 'אין' && v !== 'none' && v !== 'לא' && v !== '-';
+    })
+    .map(r => `
+      <div class="response-row">
+        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
+        <div class="response-detail">${escapeHtml(r.paid_from_pocket)}</div>
+      </div>
+    `).join('');
+  document.getElementById('paymentsList').innerHTML = list || '<p style="color:var(--text-muted);">לא צוין שאף אחד משלם מהכיס.</p>';
+}
+
+function renderDream() {
+  const list = DATA.responses
+    .filter(r => r.dream_tool && r.dream_tool.trim())
+    .map(r => `
+      <div class="response-row">
+        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
+        <div class="response-detail">${escapeHtml(r.dream_tool)}</div>
+      </div>
+    `).join('');
+  document.getElementById('dreamList').innerHTML = list || '<p style="color:var(--text-muted);">אין כלי חלום שצוין.</p>';
+}
+
+function renderFreeText() {
+  const list = DATA.responses
+    .filter(r => r.free_text && r.free_text.trim())
+    .map(r => `
+      <div class="response-row">
+        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
+        <div class="response-detail" style="white-space:pre-wrap;">${escapeHtml(r.free_text)}</div>
+      </div>
+    `).join('');
+  document.getElementById('freeTextList').innerHTML = list || '<p style="color:var(--text-muted);">אין טקסט חופשי.</p>';
+}
+
+// ── Tabs ───────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.style.display = p.id === 'panel-' + name ? 'block' : 'none';
+  });
+}
+
+// ── CSV export ─────────────────────────────────────────
+function exportCsv() {
+  // Wide format: one row per response, with all core tools as columns
+  const coreTools = DATA.core_tools || [];
+  const customToolNames = Array.from(new Set(
+    DATA.tools.filter(t => t.is_custom).map(t => t.tool_name)
+  ));
+  const allTools = [...coreTools, ...customToolNames];
+
+  const headers = ['timestamp', 'name', 'role', 'team', 'ai_level',
+    'paid_from_pocket', 'pain_points', 'dream_tool', 'free_text'];
+  allTools.forEach(tn => {
+    headers.push(`${tn}__usage`, `${tn}__effectiveness`, `${tn}__output`);
+  });
+
+  const lines = [headers.join(',')];
+  DATA.responses.forEach(r => {
+    const row = [r.timestamp, r.name, r.role, r.team, r.ai_level,
+      r.paid_from_pocket, r.pain_points, r.dream_tool, r.free_text];
+    allTools.forEach(tn => {
+      const t = DATA.tools.find(x => x.response_id === r.id && x.tool_name === tn);
+      row.push(t ? t.usage_level : '');
+      row.push(t ? (t.effectiveness || '') : '');
+      row.push(t ? (t.daily_output || '') : '');
+    });
+    lines.push(row.map(csvEscape).join(','));
+  });
+
+  const csv = '﻿' + lines.join('\n'); // BOM for Excel Hebrew
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ai-survey-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function csvEscape(v) {
+  if (v === null || v === undefined) return '';
+  const s = String(v);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+loadData();
+</script>
+
+</body>
+</html>

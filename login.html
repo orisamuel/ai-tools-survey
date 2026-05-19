@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0f14">
+<title>סקר AI — כניסת אדמין</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="utils.js"></script>
+<style>
+  .login-wrap {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 40px 36px;
+    width: 100%; max-width: 380px;
+    box-shadow: var(--shadow-lg);
+  }
+  .login-title {
+    text-align: center;
+    font-size: 1.5rem; font-weight: 800; color: var(--accent-bright);
+    margin-bottom: 4px;
+  }
+  .login-sub {
+    text-align: center;
+    font-size: 0.85rem; color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+  .login-error {
+    color: var(--danger); font-size: 0.85rem;
+    text-align: center; min-height: 20px; margin-bottom: 8px;
+  }
+  .login-btn { width: 100%; padding: 12px; font-size: 1rem; font-weight: 700; }
+  .back-link { text-align: center; margin-top: 16px; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-title">כניסת אדמין</div>
+    <div class="login-sub">לצפייה בתוצאות הסקר בלבד</div>
+
+    <div class="form-group">
+      <label class="form-label">שם משתמש</label>
+      <input type="text" id="loginUser" class="form-input" autocomplete="username"
+             onkeydown="if(event.key==='Enter') document.getElementById('loginPass').focus()">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">סיסמה</label>
+      <input type="password" id="loginPass" class="form-input" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') submitLogin()">
+    </div>
+
+    <div class="login-error" id="loginError"></div>
+    <button class="btn btn-primary login-btn" onclick="submitLogin()">כניסה</button>
+
+    <div class="back-link">
+      <a href="index.html">→ חזרה לטופס הסקר</a>
+    </div>
+  </div>
+</div>
+
+<script>
+initTheme();
+warmupServer();
+
+if (getAuthSession()) {
+  window.location.href = 'admin.html';
+}
+
+async function submitLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+
+  if (!username || !password) {
+    err.textContent = 'יש להזין שם משתמש וסיסמה';
+    return;
+  }
+
+  try {
+    const res = await apiCall('validateCredentials', { username, password });
+    if (res.success) {
+      setAuthSession(username);
+      window.location.href = 'admin.html';
+    } else {
+      err.textContent = res.message || 'פרטי כניסה שגויים';
+    }
+  } catch (e) {
+    err.textContent = 'שגיאת חיבור: ' + e.message;
+  }
+}
+</script>
+
+</body>
+</html>

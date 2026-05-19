@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0f14">
+<title>סקר שימוש בכלי AI — ארבעים ושתיים</title>
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="utils.js"></script>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-progress" id="loadingProgress">טוען...</div>
+</div>
+
+<div id="mainContent">
+
+  <header class="app-header">
+    <div>
+      <div class="app-title" id="appTitle"></div>
+      <div class="app-subtitle" id="appSubtitle"></div>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+    </div>
+  </header>
+
+  <!-- ===== Survey container ===== -->
+  <div id="surveyContainer">
+
+    <!-- Intro -->
+    <div class="intro-card">
+      <h1>סקר שימוש בכלי AI במשרד</h1>
+      <p>אנחנו בוחנים את הסטאק של כלי ה-AI שלנו — מה באמת בשימוש, מה יעיל, ועל מה אנחנו משלמים פעמיים. מטרת הסקר היא לרכז מנויים, לחסוך בעלויות מיותרות ולוודא שלכל אחד יש את הכלים שהוא באמת צריך.</p>
+      <p><strong>זמן מילוי:</strong> 5–7 דקות.</p>
+      <p><strong>הסקר אינו אנונימי</strong> — חשוב לנו לדעת מי משתמש במה כדי לבנות סטאק שמתאים לכל תפקיד. תהיו כנים. גם אם השימוש שלכם נראה לכם מוזר.</p>
+      <div class="note">
+        💡 השאלות על הכלים מופיעות רק לכלים שאתם מסמנים שאתם משתמשים בהם. כלי שלא בחרתם — לא תתבקשו לדרג.
+      </div>
+    </div>
+
+    <!-- Section 1: Identity -->
+    <div class="section">
+      <div class="section-title"><span class="step">1</span> מי את/ה</div>
+      <div class="section-hint">השדות חובה. נשארים פנימי במשרד.</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>שם מלא</label>
+          <input type="text" class="form-input" id="fName" placeholder="ישראל ישראלי" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>תפקיד</label>
+          <input type="text" class="form-input" id="fRole" placeholder="מעצב/ת, מנהל/ת אקאונט, וכו'" autocomplete="organization-title">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">צוות</label>
+        <div class="pill-group" id="teamPills"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">רמת ה-AI שלך, בכנות</label>
+        <div class="pill-group" id="aiLevelPills"></div>
+      </div>
+    </div>
+
+    <!-- Section 2: Tools -->
+    <div class="section">
+      <div class="section-title"><span class="step">2</span> הכלים</div>
+      <div class="section-hint">
+        סמנו "משתמש/ת" על כל כלי שאתם נוגעים בו. לכלים שתסמנו — תתבקשו לתת דירוג קצר.
+      </div>
+
+      <div id="toolsList"></div>
+
+      <div style="margin-top:18px; padding-top:18px; border-top:1px dashed var(--glass-border);">
+        <div class="form-label">כלי נוסף שאתם משתמשים בו ולא ברשימה?</div>
+        <div class="add-tool-row">
+          <input type="text" class="form-input" id="customToolInput" placeholder="לדוגמה: Runway, Higgsfield, Perplexity..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTool();}">
+          <button type="button" class="btn btn-secondary" onclick="addCustomTool()">+ הוסף</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Payment -->
+    <div class="section">
+      <div class="section-title"><span class="step">3</span> מנויים מהכיס</div>
+      <div class="section-hint">
+        אם אתם משלמים על כלי כלשהו <strong>מהכיס</strong> (ולא דרך המשרד) — נשמח לדעת אילו. חשוב לנו לרכז את התשלומים ולכסות אתכם.
+      </div>
+      <div class="form-group">
+        <textarea class="form-textarea" id="fPaidFromPocket" placeholder="לדוגמה: ChatGPT Plus, Midjourney standard. או 'אין' אם הכל דרך המשרד."></textarea>
+      </div>
+    </div>
+
+    <!-- Section 4: Pain points -->
+    <div class="section">
+      <div class="section-title"><span class="step">4</span> מה מעצבן הכי הרבה</div>
+      <div class="section-hint">סמנו עד 3 דברים שהכי מציקים בעבודה היומיומית עם הכלים.</div>
+      <div class="check-grid" id="painPoints"></div>
+
+      <div class="form-group" style="margin-top:18px;">
+        <label class="form-label">כלי אחד שאתם חולמים עליו ואין לכם גישה</label>
+        <input type="text" class="form-input" id="fDreamTool" placeholder="לדוגמה: Runway Gen-4, Veo 3, Cursor Pro...">
+      </div>
+    </div>
+
+    <!-- Section 5: Free text -->
+    <div class="section">
+      <div class="section-title"><span class="step">5</span> משהו שלא שאלנו?</div>
+      <div class="section-hint">מקום פתוח — תסכולים, רעיונות, בקשות, כל מה שעולה.</div>
+      <textarea class="form-textarea" id="fFreeText" placeholder="כתבו כל מה שעולה. אופציונלי." style="min-height:120px;"></textarea>
+    </div>
+
+    <div class="submit-bar">
+      <button class="btn btn-primary btn-large" id="submitBtn" onclick="submitSurvey()">
+        שלח/י את הסקר
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Success screen (hidden until submit) ===== -->
+  <div id="successContainer" style="display:none;">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>נשלח. תודה!</h2>
+      <p>בעוד שבוע-שבועיים נחזור עם החלטות על הסטאק החדש.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+initTheme();
+document.getElementById('appTitle').textContent    = CONFIG.APP_NAME;
+document.getElementById('appSubtitle').textContent = CONFIG.APP_SUBTITLE;
+warmupServer();
+
+// State — one entry per tool. Custom tools get added to this list.
+let toolsState = CONFIG.CORE_TOOLS.map(t => ({
+  name: t.name,
+  category: t.category,
+  emoji: t.emoji,
+  is_custom: false,
+  active: false,             // "yes I use this"
+  usage_level: 'never',
+  effectiveness: 0,
+  daily_output: 0
+}));
+
+// ── Render pills (team + ai_level) ──────────────────────
+function renderPills(containerId, options, stateKey, valueKey) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = options.map((opt, i) => {
+    const value = typeof opt === 'string' ? opt : opt.value;
+    const label = typeof opt === 'string' ? opt : opt.label;
+    const id = `${containerId}_${i}`;
+    return `
+      <input type="radio" name="${containerId}" id="${id}" class="pill-radio" value="${escapeHtml(value)}">
+      <label for="${id}" class="pill-label">${escapeHtml(label)}</label>
+    `;
+  }).join('');
+}
+renderPills('teamPills', CONFIG.TEAMS);
+renderPills('aiLevelPills', CONFIG.AI_LEVELS);
+
+// ── Render pain points ──────────────────────────────────
+function renderPainPoints() {
+  const el = document.getElementById('painPoints');
+  el.innerHTML = CONFIG.PAIN_POINTS.map((p, i) => `
+    <label class="check-item">
+      <input type="checkbox" value="${escapeHtml(p)}" onchange="updateCheckedClass(this); limitPainPoints();">
+      <span>${escapeHtml(p)}</span>
+    </label>
+  `).join('');
+}
+renderPainPoints();
+
+function updateCheckedClass(input) {
+  input.closest('.check-item').classList.toggle('selected', input.checked);
+}
+function limitPainPoints() {
+  const checked = document.querySelectorAll('#painPoints input:checked');
+  if (checked.length > 3) {
+    const last = checked[checked.length - 1];
+    last.checked = false;
+    updateCheckedClass(last);
+    showToast('עד 3 בחירות בלבד', 'warning', 2000);
+  }
+}
+
+// ── Render tool cards ──────────────────────────────────
+function renderTools() {
+  const el = document.getElementById('toolsList');
+  el.innerHTML = toolsState.map((t, i) => renderToolCard(t, i)).join('');
+}
+
+function renderToolCard(t, i) {
+  const ratingButtons = [1,2,3,4,5].map(n => `
+    <button type="button" class="rating-btn ${t.effectiveness === n ? 'selected' : ''}"
+            onclick="setEffectiveness(${i}, ${n})">${n}</button>
+  `).join('');
+
+  const ratingLabel = t.effectiveness
+    ? escapeHtml(CONFIG.EFFECTIVENESS_LABELS[t.effectiveness] || '')
+    : '';
+
+  const usageOptions = CONFIG.USAGE_LEVELS.filter(u => u.value !== 'never').map(u => `
+    <input type="radio" name="usage_${i}" id="usage_${i}_${u.value}" class="pill-radio"
+           value="${u.value}" ${t.usage_level === u.value ? 'checked' : ''}
+           onchange="setUsage(${i}, '${u.value}')">
+    <label for="usage_${i}_${u.value}" class="pill-label">${escapeHtml(u.label)}</label>
+  `).join('');
+
+  const customRemove = t.is_custom
+    ? `<button type="button" class="tool-remove" onclick="removeCustomTool(${i})">✕ הסר</button>`
+    : '';
+
+  return `
+    <div class="tool-card ${t.active ? 'active' : ''}" id="tool_${i}">
+      <div class="tool-header">
+        <div class="tool-emoji">${t.emoji || '🛠️'}</div>
+        <div>
+          <div class="tool-name">${escapeHtml(t.name)}</div>
+        </div>
+        <div class="tool-category">${escapeHtml(t.category || 'מותאם')}</div>
+        ${customRemove}
+        <div class="use-toggle">
+          <input type="radio" name="use_${i}" id="use_${i}_no" class="pill-radio"
+                 ${!t.active ? 'checked' : ''} onchange="setActive(${i}, false)">
+          <label for="use_${i}_no" class="pill-label">לא משתמש/ת</label>
+          <input type="radio" name="use_${i}" id="use_${i}_yes" class="pill-radio"
+                 ${t.active ? 'checked' : ''} onchange="setActive(${i}, true)">
+          <label for="use_${i}_yes" class="pill-label">משתמש/ת</label>
+        </div>
+      </div>
+
+      <div class="tool-body">
+        <div class="tool-field">
+          <div class="tool-field-label">תדירות השימוש</div>
+          <div class="pill-group">${usageOptions}</div>
+        </div>
+
+        <div class="tool-field">
+          <div class="tool-field-label">עד כמה הוא יעיל בעיניך? (1 = חלש, 5 = אי אפשר בלי)</div>
+          <div class="rating">
+            ${ratingButtons}
+            <span class="rating-label" id="rating_label_${i}">${ratingLabel}</span>
+          </div>
+        </div>
+
+        <div class="tool-field">
+          <div class="tool-field-label">כמות תוצרים ממוצעת ביום פעיל (כולל ניסיונות וזבל)</div>
+          <input type="number" class="form-input" min="0" step="1" style="max-width:200px;"
+                 value="${t.daily_output || ''}"
+                 placeholder="מספר"
+                 onchange="setDailyOutput(${i}, this.value)">
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+renderTools();
+
+// ── Tool state setters ─────────────────────────────────
+function setActive(i, active) {
+  toolsState[i].active = active;
+  if (!active) {
+    toolsState[i].usage_level = 'never';
+    toolsState[i].effectiveness = 0;
+    toolsState[i].daily_output = 0;
+  } else if (toolsState[i].usage_level === 'never') {
+    toolsState[i].usage_level = 'weekly';
+  }
+  document.getElementById('tool_' + i).outerHTML = renderToolCard(toolsState[i], i);
+}
+
+function setUsage(i, value) {
+  toolsState[i].usage_level = value;
+}
+
+function setEffectiveness(i, n) {
+  toolsState[i].effectiveness = n;
+  // Update visually without full re-render so we don't lose number input focus
+  const card = document.getElementById('tool_' + i);
+  card.querySelectorAll('.rating-btn').forEach((b, idx) => {
+    b.classList.toggle('selected', idx + 1 === n);
+  });
+  const lbl = document.getElementById('rating_label_' + i);
+  if (lbl) lbl.textContent = CONFIG.EFFECTIVENESS_LABELS[n] || '';
+}
+
+function setDailyOutput(i, value) {
+  toolsState[i].daily_output = parseInt(value) || 0;
+}
+
+// ── Custom tool ────────────────────────────────────────
+function addCustomTool() {
+  const input = document.getElementById('customToolInput');
+  const name = input.value.trim();
+  if (!name) return;
+  if (toolsState.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+    showToast('הכלי כבר קיים ברשימה', 'warning');
+    return;
+  }
+  toolsState.push({
+    name,
+    category: 'מותאם',
+    emoji: '🛠️',
+    is_custom: true,
+    active: true,
+    usage_level: 'weekly',
+    effectiveness: 0,
+    daily_output: 0
+  });
+  input.value = '';
+  renderTools();
+  // Scroll to the new tool
+  setTimeout(() => {
+    const last = document.querySelector('#toolsList .tool-card:last-of-type');
+    if (last) last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
+}
+
+function removeCustomTool(i) {
+  toolsState.splice(i, 1);
+  renderTools();
+}
+
+// ── Submit ─────────────────────────────────────────────
+async function submitSurvey() {
+  const name = document.getElementById('fName').value.trim();
+  const role = document.getElementById('fRole').value.trim();
+
+  if (!name || !role) {
+    showToast('יש למלא שם ותפקיד', 'error');
+    document.getElementById(!name ? 'fName' : 'fRole').focus();
+    return;
+  }
+
+  // Validate that every "active" tool has a rating + frequency
+  const incomplete = toolsState.find(t => t.active && (!t.effectiveness || !t.usage_level || t.usage_level === 'never'));
+  if (incomplete) {
+    showToast(`חסרים פרטים עבור ${incomplete.name}: דירוג ותדירות`, 'error');
+    return;
+  }
+
+  const team    = document.querySelector('input[name="teamPills"]:checked')?.value || '';
+  const aiLevel = document.querySelector('input[name="aiLevelPills"]:checked')?.value || '';
+  const painPoints = Array.from(document.querySelectorAll('#painPoints input:checked'))
+    .map(c => c.value).join(' | ');
+  const paidFromPocket = document.getElementById('fPaidFromPocket').value.trim();
+  const dreamTool      = document.getElementById('fDreamTool').value.trim();
+  const freeText       = document.getElementById('fFreeText').value.trim();
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'שולח...';
+
+  try {
+    const res = await apiCall('submitSurvey', {
+      name, role, team,
+      ai_level: aiLevel,
+      paid_from_pocket: paidFromPocket,
+      pain_points: painPoints,
+      dream_tool: dreamTool,
+      free_text: freeText,
+      tools: JSON.stringify(toolsState.map(t => ({
+        name: t.name,
+        is_custom: t.is_custom,
+        usage_level: t.active ? t.usage_level : 'never',
+        effectiveness: t.active ? t.effectiveness : 0,
+        daily_output: t.active ? t.daily_output : 0
+      })))
+    });
+
+    if (!res.success) throw new Error(res.message || 'שגיאה לא ידועה');
+
+    document.getElementById('surveyContainer').style.display = 'none';
+    document.getElementById('successContainer').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    showToast('שגיאה: ' + e.message, 'error', 5000);
+    btn.disabled = false;
+    btn.textContent = 'שלח/י את הסקר';
+  }
+}
+
+hideLoadingScreen();
+</script>
+
+</body>
+</html>
