@@ -5,7 +5,6 @@
 const CONFIG = {
 
     // ── Google Apps Script web-app URL ───────────────────────
-    // Paste the URL from: Apps Script editor → Deploy → Manage deployments
     SCRIPT_URL: 'PASTE_YOUR_DEPLOYED_SCRIPT_URL_HERE',
 
     // ── Direct link to the underlying Sheet (for "Open Sheet" buttons) ─
@@ -15,23 +14,46 @@ const CONFIG = {
     APP_NAME:     'סקר שימוש בכלי AI',
     APP_SUBTITLE: 'ארבעים ושתיים — סוכנות דיגיטל ופרסום',
 
-    // ── Tool categories (order = display order in survey) ────
-    CATEGORIES: ['כתיבה וצ׳אט', 'תמונות', 'וידאו', 'סאונד'],
+    // ── Categories (in display order) ────────────────────────
+    CATEGORIES: ['כתיבה וצ׳אט', 'תמונות', 'וידאו', 'סאונד', 'אחר'],
 
-    // ── Core tools ───────────────────────────────────────────
-    // categories[0] determines which section the tool appears under.
-    // Tools whose ONLY category is 'כתיבה וצ׳אט' skip the quantity question.
-    // Must match CORE_TOOLS in appscript.gs.
-    CORE_TOOLS: [
-        { name: 'ChatGPT',           categories: ['כתיבה וצ׳אט', 'תמונות'],            emoji: '💬' },
-        { name: 'Claude',            categories: ['כתיבה וצ׳אט'],                       emoji: '🤖' },
-        { name: 'כלי ה-AI של גוגל',  categories: ['כתיבה וצ׳אט', 'תמונות', 'וידאו'],   emoji: '✨' },
-        { name: 'Midjourney',        categories: ['תמונות'],                            emoji: '🎨' },
-        { name: 'Hedra',             categories: ['וידאו'],                             emoji: '🎬' },
-        { name: 'Kling',             categories: ['וידאו'],                             emoji: '🎞️' },
-        { name: 'ElevenLabs',        categories: ['סאונד'],                             emoji: '🎤' },
-        { name: 'Suno',              categories: ['סאונד'],                             emoji: '🎵' },
-    ],
+    // ── Predefined tools per category ────────────────────────
+    // A tool used across categories appears in each one — the user
+    // fills it out separately per category (different usage_level /
+    // effectiveness / quantity per use case).
+    // The 'אחר' category has no predefined tools — only customs.
+    // Quantity question is hidden for 'כתיבה וצ׳אט'.
+    TOOLS_BY_CATEGORY: {
+        'כתיבה וצ׳אט': [
+            { name: 'ChatGPT',           emoji: '💬' },
+            { name: 'Claude',            emoji: '🤖' },
+            { name: 'כלי ה-AI של גוגל',  emoji: '✨' },
+        ],
+        'תמונות': [
+            { name: 'כלי ה-AI של גוגל (Flow, Gemini)', emoji: '✨' },
+            { name: 'ChatGPT',                          emoji: '💬' },
+            { name: 'Hedra',                            emoji: '🎬' },
+        ],
+        'וידאו': [
+            { name: 'Kling',             emoji: '🎞️' },
+            { name: 'כלי ה-AI של גוגל',  emoji: '✨' },
+            { name: 'Hedra',             emoji: '🎬' },
+        ],
+        'סאונד': [
+            { name: 'Suno',       emoji: '🎵' },
+            { name: 'ElevenLabs', emoji: '🎤' },
+        ],
+        'אחר': [],
+    },
+
+    // Per-category placeholder text for the "add custom tool" input.
+    ADD_TOOL_PLACEHOLDER: {
+        'כתיבה וצ׳אט': 'הוסיפו כלי כתיבה/צ׳אט אחר...',
+        'תמונות':      'הוסיפו כלי תמונות אחר...',
+        'וידאו':       'הוסיפו כלי וידאו אחר...',
+        'סאונד':       'הוסיפו כלי סאונד אחר...',
+        'אחר':         'כלי AI אחר שמשתמשים בו...',
+    },
 
     USAGE_LEVELS: [
         { value: 'never',  label: 'לא משתמש/ת' },
@@ -65,6 +87,5 @@ const CONFIG = {
         'אקספרט/ית — מלמד/ת אחרים',
     ],
 
-    // ── Theme ────────────────────────────────────────────────
     DEFAULT_THEME: 'dark',
 };

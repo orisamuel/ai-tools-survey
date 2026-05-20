@@ -395,6 +395,26 @@ h1, h2, h3, h4 { font-weight: 800; }
 }
 .add-tool-row .form-input { flex: 1; }
 
+/* Inline add-input (one per category section) */
+.add-tool-inline {
+  display: flex; gap: 8px; margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--glass-bg);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-md);
+}
+.add-tool-inline .form-input {
+  flex: 1; padding: 8px 12px; font-size: 0.88rem;
+  background: transparent; border: 1px solid var(--glass-border);
+}
+.add-tool-inline .btn {
+  padding: 8px 14px; font-size: 0.85rem;
+}
+.empty-cat-hint {
+  color: var(--text-muted); font-size: 0.85rem;
+  padding: 8px 4px; font-style: italic;
+}
+
 /* ── Admin dashboard ───────────────────────────────────── */
 .stats-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

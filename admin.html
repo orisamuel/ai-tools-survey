@@ -38,12 +38,13 @@
     <button class="tab active" data-tab="tools" onclick="switchTab('tools')">כלים — סיכום</button>
     <button class="tab" data-tab="responses" onclick="switchTab('responses')">תשובות פרטניות</button>
     <button class="tab" data-tab="frustrations" onclick="switchTab('frustrations')">תסכולים ותשלומים</button>
+    <button class="tab" data-tab="recipes" onclick="switchTab('recipes')">מתכונים 🧀</button>
   </div>
 
   <!-- Tab: tools summary -->
   <div class="tab-panel" id="panel-tools">
     <div class="section">
-      <h3 style="margin-bottom:14px;">סיכום לפי כלי</h3>
+      <h3 style="margin-bottom:14px;">סיכום לפי כלי × קטגוריה</h3>
       <div style="overflow-x:auto;">
         <table class="tool-stats-table" id="toolStatsTable"></table>
       </div>
@@ -74,6 +75,14 @@
     </div>
   </div>
 
+  <!-- Tab: recipes (the fun one) -->
+  <div class="tab-panel" id="panel-recipes" style="display:none;">
+    <div class="section">
+      <h3 style="margin-bottom:14px;">מתכונים לשבועות 🧀</h3>
+      <div id="recipesList"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -86,7 +95,7 @@ if (CONFIG.SHEETS_URL && !CONFIG.SHEETS_URL.includes('PASTE_')) {
 }
 warmupServer();
 
-let DATA = { responses: [], tools: [], core_tools: [] };
+let DATA = { responses: [], tools: [] };
 
 const USAGE_WEIGHTS = { never: 0, rarely: 1, weekly: 2, daily: 3, heavy: 4 };
 const USAGE_HEBREW  = { never: 'לא משתמש', rarely: 'נדיר', weekly: 'שבועי', daily: 'יומי', heavy: 'כבד' };
@@ -111,23 +120,25 @@ function renderAll() {
   renderResponses();
   renderFrustrations();
   renderPayments();
+  renderRecipes();
 }
 
 // ── Top KPIs ───────────────────────────────────────────
 function renderStats() {
   const totalResponses = DATA.responses.length;
-  const totalTools = DATA.tools.filter(t => USAGE_WEIGHTS[t.usage_level] > 0).length;
-  const uniqueTools = new Set(DATA.tools.filter(t => USAGE_WEIGHTS[t.usage_level] > 0).map(t => t.tool_name)).size;
+  const activeUses = DATA.tools.filter(t => USAGE_WEIGHTS[t.usage_level] > 0);
+  const uniqueToolCat = new Set(activeUses.map(t => t.tool_name + '|' + t.category)).size;
   const paidFromPocketCount = DATA.responses.filter(r => {
     const v = (r.paid_from_pocket || '').toLowerCase().trim();
     return v && v !== 'אין' && v !== 'none' && v !== 'לא' && v !== '-';
   }).length;
+  const recipesCount = DATA.responses.filter(r => r.recipe && r.recipe.trim()).length;
 
   const cards = [
     { label: 'תשובות', value: totalResponses, sub: 'סך הכל' },
-    { label: 'כלים בשימוש', value: uniqueTools, sub: 'כלים ייחודיים שמישהו השתמש בהם' },
+    { label: 'כלי × קטגוריה', value: uniqueToolCat, sub: 'שילובים ייחודיים בשימוש' },
     { label: 'מנויים מהכיס', value: paidFromPocketCount, sub: 'עובדים שמשלמים מעצמם' },
-    { label: 'סך שימושים', value: totalTools, sub: 'צמדים עובד×כלי' },
+    { label: 'מתכונים', value: recipesCount, sub: 'שותפו מתכונים לשבועות' },
   ];
 
   document.getElementById('statsGrid').innerHTML = cards.map(c => `
@@ -139,14 +150,16 @@ function renderStats() {
   `).join('');
 }
 
-// ── Tool stats table ───────────────────────────────────
+// ── Tool stats table — aggregated by (tool_name × category) ──
 function renderToolStats() {
   const agg = {};
   DATA.tools.forEach(t => {
     const active = USAGE_WEIGHTS[t.usage_level] > 0;
-    if (!agg[t.tool_name]) {
-      agg[t.tool_name] = {
+    const key = t.tool_name + '||' + t.category;
+    if (!agg[key]) {
+      agg[key] = {
         name: t.tool_name,
+        category: t.category,
         is_custom: t.is_custom,
         users: 0, total: 0,
         eff_sum: 0, eff_count: 0,
@@ -154,7 +167,7 @@ function renderToolStats() {
         usage_distribution: { rarely:0, weekly:0, daily:0, heavy:0 }
       };
     }
-    const a = agg[t.tool_name];
+    const a = agg[key];
     a.total++;
     if (active) {
       a.users++;
@@ -165,12 +178,20 @@ function renderToolStats() {
   });
 
   const totalRespondents = DATA.responses.length || 1;
-  const list = Object.values(agg).sort((a, b) => b.users - a.users);
+  const categoryOrder = ['כתיבה וצ׳אט', 'תמונות', 'וידאו', 'סאונד', 'אחר'];
+  const list = Object.values(agg).sort((a, b) => {
+    const ca = categoryOrder.indexOf(a.category);
+    const cb = categoryOrder.indexOf(b.category);
+    if (ca !== cb) return ca - cb;
+    return b.users - a.users;
+  });
+
   const maxUsers = Math.max(1, ...list.map(t => t.users));
 
   let html = `
     <thead>
       <tr>
+        <th>קטגוריה</th>
         <th>כלי</th>
         <th>משתמשים</th>
         <th>אחוז מהמשרד</th>
@@ -194,6 +215,7 @@ function renderToolStats() {
     const customTag = t.is_custom ? ' <span class="tag accent">מותאם</span>' : '';
     html += `
       <tr>
+        <td><span class="tag">${escapeHtml(t.category || '—')}</span></td>
         <td><strong>${escapeHtml(t.name)}</strong>${customTag}</td>
         <td>${t.users}</td>
         <td>${pct}% <span class="bar" style="width:${barWidth}px;"></span></td>
@@ -226,7 +248,7 @@ function renderResponses() {
       .filter(t => t.response_id === r.id && USAGE_WEIGHTS[t.usage_level] > 0)
       .sort((a, b) => USAGE_WEIGHTS[b.usage_level] - USAGE_WEIGHTS[a.usage_level]);
     const toolTags = myTools.map(t =>
-      `<span class="tag accent">${escapeHtml(t.tool_name)} · ${USAGE_HEBREW[t.usage_level] || ''} · ★${t.effectiveness}</span>`
+      `<span class="tag accent">${escapeHtml(t.tool_name)} (${escapeHtml(t.category)}) · ${USAGE_HEBREW[t.usage_level] || ''} · ★${t.effectiveness}</span>`
     ).join('');
 
     return `
@@ -242,12 +264,13 @@ function renderResponses() {
         </div>
         ${r.paid_from_pocket ? `<div class="response-detail" style="margin-top:6px;"><strong>מהכיס:</strong> ${escapeHtml(r.paid_from_pocket)}</div>` : ''}
         ${r.frustrations ? `<div class="response-detail" style="margin-top:6px;white-space:pre-wrap;"><strong>תסכולים:</strong> ${escapeHtml(r.frustrations)}</div>` : ''}
+        ${r.recipe ? `<div class="response-detail" style="margin-top:6px;white-space:pre-wrap;"><strong>מתכון:</strong> ${escapeHtml(r.recipe)}</div>` : ''}
       </div>
     `;
   }).join('');
 }
 
-// ── Frustrations (open text) ──────────────────────────
+// ── Frustrations ───────────────────────────────────────
 function renderFrustrations() {
   const list = DATA.responses
     .filter(r => r.frustrations && r.frustrations.trim())
@@ -275,6 +298,19 @@ function renderPayments() {
   document.getElementById('paymentsList').innerHTML = list || '<p style="color:var(--text-muted);">לא צוין שאף אחד משלם מהכיס.</p>';
 }
 
+// ── Recipes 🧀 ────────────────────────────────────────
+function renderRecipes() {
+  const list = DATA.responses
+    .filter(r => r.recipe && r.recipe.trim())
+    .map(r => `
+      <div class="response-row">
+        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.department || '—')}</span></div>
+        <div class="response-detail" style="white-space:pre-wrap;">${escapeHtml(r.recipe)}</div>
+      </div>
+    `).join('');
+  document.getElementById('recipesList').innerHTML = list || '<p style="color:var(--text-muted);">עדיין אין מתכונים. רעבים.</p>';
+}
+
 // ── Tabs ───────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
@@ -285,24 +321,28 @@ function switchTab(name) {
 
 // ── CSV export ─────────────────────────────────────────
 function exportCsv() {
-  const coreTools = DATA.core_tools || [];
-  const customToolNames = Array.from(new Set(
-    DATA.tools.filter(t => t.is_custom).map(t => t.tool_name)
-  ));
-  const allTools = [...coreTools, ...customToolNames];
+  // Build unique (tool_name × category) columns from the data
+  const toolCatPairs = Array.from(new Set(
+    DATA.tools.map(t => t.tool_name + '||' + t.category)
+  )).map(s => {
+    const [name, cat] = s.split('||');
+    return { name, category: cat };
+  });
 
   const headers = ['timestamp', 'name', 'department', 'ai_level',
-    'paid_from_pocket', 'frustrations'];
-  allTools.forEach(tn => {
-    headers.push(`${tn}__usage`, `${tn}__effectiveness`, `${tn}__output`);
+    'paid_from_pocket', 'frustrations', 'recipe'];
+  toolCatPairs.forEach(tc => {
+    const label = `${tc.name}__${tc.category}`;
+    headers.push(label + '__usage', label + '__effectiveness', label + '__output');
   });
 
   const lines = [headers.join(',')];
   DATA.responses.forEach(r => {
     const row = [r.timestamp, r.name, r.department, r.ai_level,
-      r.paid_from_pocket, r.frustrations];
-    allTools.forEach(tn => {
-      const t = DATA.tools.find(x => x.response_id === r.id && x.tool_name === tn);
+      r.paid_from_pocket, r.frustrations, r.recipe];
+    toolCatPairs.forEach(tc => {
+      const t = DATA.tools.find(x =>
+        x.response_id === r.id && x.tool_name === tc.name && x.category === tc.category);
       row.push(t ? t.usage_level : '');
       row.push(t ? (t.effectiveness || '') : '');
       row.push(t ? (t.daily_output || '') : '');

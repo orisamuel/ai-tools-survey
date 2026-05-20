@@ -16,17 +16,10 @@
 //        Deploy → Manage deployments → ✏ edit → Version: New version → Deploy
 // ============================================================
 
-// Core tool list — must match the frontend list in config.js.
-// Adding a tool? Add it here AND in config.js CORE_TOOLS.
-const CORE_TOOLS = ['ChatGPT', 'Claude', 'כלי ה-AI של גוגל', 'Midjourney', 'Hedra', 'Kling', 'ElevenLabs', 'Suno'];
-
 // ============================================================
 // HELPERS
 // ============================================================
 
-// Uses the spreadsheet the script is container-bound to.
-// As long as you opened Apps Script via Extensions → Apps Script
-// from inside the sheet, this works automatically.
 function getSpreadsheet() {
   return SpreadsheetApp.getActiveSpreadsheet();
 }
@@ -50,10 +43,6 @@ function fmtDate(d) {
   return Utilities.formatDate(d, 'Asia/Jerusalem', 'dd/MM/yyyy');
 }
 
-function fmtTime(d) {
-  return Utilities.formatDate(d, 'Asia/Jerusalem', 'HH:mm');
-}
-
 function fmtTimestamp(d) {
   return Utilities.formatDate(d, 'Asia/Jerusalem', 'dd/MM/yyyy HH:mm');
 }
@@ -71,26 +60,26 @@ function shortId() {
 // ============================================================
 // RESPONSES (one row per submission)
 // Schema: id(0), timestamp(1), name(2), department(3), ai_level(4),
-//         paid_from_pocket(5), frustrations(6)
+//         paid_from_pocket(5), frustrations(6), recipe(7)
 // ============================================================
 
 const RESPONSES_HEADERS = [
   'id', 'timestamp', 'name', 'department', 'ai_level',
-  'paid_from_pocket', 'frustrations'
+  'paid_from_pocket', 'frustrations', 'recipe'
 ];
 
 // ============================================================
-// TOOL_RESPONSES (one row per tool per submission)
-// Schema: response_id(0), tool_name(1), is_custom(2),
-//         usage_level(3), effectiveness(4), daily_output(5)
+// TOOL_RESPONSES (one row per (submission × tool × category))
+// Schema: response_id(0), tool_name(1), category(2), is_custom(3),
+//         usage_level(4), effectiveness(5), daily_output(6)
 // ============================================================
 // usage_level:  'never' | 'rarely' | 'weekly' | 'daily' | 'heavy'
 // effectiveness: 1..5
-// daily_output: integer (avg outputs per active day; 0 if never or chat-only)
+// daily_output: integer (0 if never / chat-only category)
 // ============================================================
 
 const TOOLRESP_HEADERS = [
-  'response_id', 'tool_name', 'is_custom',
+  'response_id', 'tool_name', 'category', 'is_custom',
   'usage_level', 'effectiveness', 'daily_output'
 ];
 
@@ -100,12 +89,14 @@ const TOOLRESP_HEADERS = [
 //
 // Expects params:
 //   name, department, ai_level       (string)
-//   paid_from_pocket                 (string — free text)
-//   frustrations                     (string — free text)
+//   paid_from_pocket                 (string — free text, may be empty)
+//   frustrations                     (string — free text, may be empty)
+//   recipe                           (string — free text, may be empty)
 //   tools                            (JSON string — array of tool objects)
 //
 // tools[i] = {
 //   name: 'ChatGPT',
+//   category: 'תמונות',
 //   is_custom: false,
 //   usage_level: 'daily',
 //   effectiveness: 4,
@@ -134,7 +125,8 @@ function submitSurvey(data) {
       String(data.department).trim(),
       data.ai_level || '',
       data.paid_from_pocket || '',
-      data.frustrations || ''
+      data.frustrations || '',
+      data.recipe || ''
     ]);
 
     let tools = [];
@@ -146,6 +138,7 @@ function submitSurvey(data) {
       toolResp.appendRow([
         id,
         String(t.name).trim(),
+        String(t.category || '').trim(),
         t.is_custom ? 'כן' : 'לא',
         t.usage_level || 'never',
         parseInt(t.effectiveness) || 0,
@@ -161,7 +154,7 @@ function submitSurvey(data) {
 }
 
 // ============================================================
-// ADMIN READ — returns everything the dashboard needs in one call
+// ADMIN READ
 // ============================================================
 
 function getAllResponses() {
@@ -179,22 +172,24 @@ function getAllResponses() {
       department: r[3] || '',
       ai_level: r[4] || '',
       paid_from_pocket: r[5] || '',
-      frustrations: r[6] || ''
+      frustrations: r[6] || '',
+      recipe: r[7] || ''
     }));
 
     const tools = toolData.slice(1).filter(r => r[0]).map(r => ({
       response_id: r[0],
       tool_name: r[1] || '',
-      is_custom: r[2] === 'כן' || r[2] === true,
-      usage_level: r[3] || 'never',
-      effectiveness: parseInt(r[4]) || 0,
-      daily_output: parseInt(r[5]) || 0
+      category: r[2] || '',
+      is_custom: r[3] === 'כן' || r[3] === true,
+      usage_level: r[4] || 'never',
+      effectiveness: parseInt(r[5]) || 0,
+      daily_output: parseInt(r[6]) || 0
     }));
 
-    return { success: true, responses, tools, core_tools: CORE_TOOLS };
+    return { success: true, responses, tools };
   } catch (e) {
     Logger.log('getAllResponses error: ' + e);
-    return { success: false, message: e.toString(), responses: [], tools: [], core_tools: CORE_TOOLS };
+    return { success: false, message: e.toString(), responses: [], tools: [] };
   }
 }
 
@@ -244,7 +239,7 @@ function doPost(e) {
     switch (action) {
 
       case 'ping':
-        return jsonResponse({ success: true, version: 'v2', core_tools: CORE_TOOLS });
+        return jsonResponse({ success: true, version: 'v3' });
 
       case 'submitSurvey':
         return jsonResponse(submitSurvey({
@@ -253,6 +248,7 @@ function doPost(e) {
           ai_level: p.ai_level,
           paid_from_pocket: p.paid_from_pocket,
           frustrations: p.frustrations,
+          recipe: p.recipe,
           tools: p.tools
         }));
 
