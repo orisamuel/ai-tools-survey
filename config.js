@@ -25,9 +25,9 @@ const CONFIG = {
     // Quantity question is hidden for 'כתיבה וצ׳אט'.
     TOOLS_BY_CATEGORY: {
         'כתיבה וצ׳אט': [
-            { name: 'ChatGPT',           emoji: '💬' },
-            { name: 'Claude',            emoji: '🤖' },
-            { name: 'כלי ה-AI של גוגל',  emoji: '✨' },
+            { name: 'ChatGPT',  emoji: '💬' },
+            { name: 'Claude',   emoji: '🤖' },
+            { name: 'ג׳מיני',   emoji: '✨' },
         ],
         'תמונות': [
             { name: 'כלי ה-AI של גוגל (Flow, Gemini)', emoji: '✨' },

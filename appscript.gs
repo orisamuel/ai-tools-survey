@@ -154,6 +154,52 @@ function submitSurvey(data) {
 }
 
 // ============================================================
+// DELETE RESPONSE (admin only)
+// Removes the row from `responses` AND all matching rows from
+// `tool_responses` by response_id. Deletes bottom-up to keep
+// row indices stable during the loop.
+// ============================================================
+
+function deleteResponse(id) {
+  try {
+    if (!id) return { success: false, message: 'חסר id' };
+    const idStr = String(id).trim();
+
+    const respSheet = getSheet('responses');
+    if (!respSheet) return { success: false, message: 'גליון responses לא נמצא' };
+
+    let deletedResp = false;
+    const respData = respSheet.getDataRange().getValues();
+    for (let i = respData.length - 1; i >= 1; i--) {
+      if (String(respData[i][0]).trim() === idStr) {
+        respSheet.deleteRow(i + 1);
+        deletedResp = true;
+      }
+    }
+
+    if (!deletedResp) return { success: false, message: 'תשובה לא נמצאה' };
+
+    // Wipe child rows from tool_responses
+    let deletedTools = 0;
+    const toolSheet = getSheet('tool_responses');
+    if (toolSheet) {
+      const toolData = toolSheet.getDataRange().getValues();
+      for (let i = toolData.length - 1; i >= 1; i--) {
+        if (String(toolData[i][0]).trim() === idStr) {
+          toolSheet.deleteRow(i + 1);
+          deletedTools++;
+        }
+      }
+    }
+
+    return { success: true, message: 'נמחק', deletedTools: deletedTools };
+  } catch (e) {
+    Logger.log('deleteResponse error: ' + e);
+    return { success: false, message: e.toString() };
+  }
+}
+
+// ============================================================
 // ADMIN READ
 // ============================================================
 
@@ -254,6 +300,9 @@ function doPost(e) {
 
       case 'getAllResponses':
         return jsonResponse(getAllResponses());
+
+      case 'deleteResponse':
+        return jsonResponse(deleteResponse(p.id));
 
       case 'validateCredentials':
         return jsonResponse(validateCredentials(p.username, p.password));

@@ -258,6 +258,8 @@ function renderResponses() {
             <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.department || '—')}</span></div>
             <div class="response-meta">רמת AI: ${escapeHtml(r.ai_level || '—')} · ${escapeHtml(r.timestamp)}</div>
           </div>
+          <button class="btn-delete-response" data-id="${escapeHtml(r.id)}" data-name="${escapeHtml(r.name)}"
+                  onclick="handleDeleteClick(this)" title="מחק תשובה">🗑 מחק</button>
         </div>
         <div class="response-detail" style="margin-top:8px;">
           <strong>כלים פעילים:</strong> ${toolTags || '<span style="color:var(--text-muted);">לא סומנו</span>'}
@@ -268,6 +270,32 @@ function renderResponses() {
       </div>
     `;
   }).join('');
+}
+
+// ── Delete response ───────────────────────────────────
+async function handleDeleteClick(btn) {
+  const id   = btn.dataset.id;
+  const name = btn.dataset.name;
+  if (!id) return;
+  if (!confirm(`למחוק את התשובה של ${name}?\nזה ימחק גם את כל הכלים שסומנו על ידם.`)) return;
+
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'מוחק...';
+
+  try {
+    const res = await apiCall('deleteResponse', { id });
+    if (!res.success) throw new Error(res.message || 'שגיאה');
+    // Update local state and re-render
+    DATA.responses = DATA.responses.filter(r => r.id !== id);
+    DATA.tools     = DATA.tools.filter(t => t.response_id !== id);
+    renderAll();
+    showToast(`התשובה של ${name} נמחקה`, 'success');
+  } catch (e) {
+    showToast('שגיאה במחיקה: ' + e.message, 'error', 5000);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
 
 // ── Frustrations ───────────────────────────────────────
