@@ -8,7 +8,7 @@ const CONFIG = {
     SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxlWJlUyauP_s5aHB65jBLCQZvgq-QFDoItQWipjFU63JxHkvlSmECciEZLlp99omUQ3g/exec',
 
     // ── Direct link to the underlying Sheet (for "Open Sheet" buttons) ─
-    SHEETS_URL: 'https://docs.google.com/spreadsheets/d/PASTE_SHEET_ID/edit',
+    SHEETS_URL: 'https://docs.google.com/spreadsheets/d/1t2BHGPU5mVrDLu4-mtgXGxGl9w79_qDEUItIGdNN7tE/edit',
 
     // ── App identity ─────────────────────────────────────────
     APP_NAME:     'סקר שימוש בכלי AI',
