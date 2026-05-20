@@ -28,7 +28,6 @@
     </div>
   </header>
 
-  <!-- ===== Survey container ===== -->
   <div id="surveyContainer">
 
     <!-- Intro -->
@@ -36,7 +35,6 @@
       <h1>סקר שימוש בכלי AI במשרד</h1>
       <p>אנחנו בוחנים את הסטאק של כלי ה-AI שלנו — מה באמת בשימוש, מה יעיל, ועל מה אנחנו משלמים פעמיים. מטרת הסקר היא לרכז מנויים, לחסוך בעלויות מיותרות ולוודא שלכל אחד יש את הכלים שהוא באמת צריך.</p>
       <p><strong>זמן מילוי:</strong> 5–7 דקות.</p>
-      <p><strong>הסקר אינו אנונימי</strong> — חשוב לנו לדעת מי משתמש במה כדי לבנות סטאק שמתאים לכל תפקיד. תהיו כנים. גם אם השימוש שלכם נראה לכם מוזר.</p>
       <div class="note">
         💡 השאלות על הכלים מופיעות רק לכלים שאתם מסמנים שאתם משתמשים בהם. כלי שלא בחרתם — לא תתבקשו לדרג.
       </div>
@@ -45,22 +43,15 @@
     <!-- Section 1: Identity -->
     <div class="section">
       <div class="section-title"><span class="step">1</span> מי את/ה</div>
-      <div class="section-hint">השדות חובה. נשארים פנימי במשרד.</div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label"><span class="required">*</span>שם מלא</label>
-          <input type="text" class="form-input" id="fName" placeholder="ישראל ישראלי" autocomplete="name">
-        </div>
-        <div class="form-group">
-          <label class="form-label"><span class="required">*</span>תפקיד</label>
-          <input type="text" class="form-input" id="fRole" placeholder="מעצב/ת, מנהל/ת אקאונט, וכו'" autocomplete="organization-title">
-        </div>
+      <div class="form-group">
+        <label class="form-label"><span class="required">*</span>שם מלא</label>
+        <input type="text" class="form-input" id="fName" placeholder="ישראל ישראלי" autocomplete="name">
       </div>
 
       <div class="form-group">
-        <label class="form-label">צוות</label>
-        <div class="pill-group" id="teamPills"></div>
+        <label class="form-label"><span class="required">*</span>מחלקה</label>
+        <div class="pill-group" id="deptPills"></div>
       </div>
 
       <div class="form-group">
@@ -78,7 +69,7 @@
 
       <div id="toolsList"></div>
 
-      <div style="margin-top:18px; padding-top:18px; border-top:1px dashed var(--glass-border);">
+      <div style="margin-top:22px; padding-top:18px; border-top:1px dashed var(--glass-border);">
         <div class="form-label">כלי נוסף שאתם משתמשים בו ולא ברשימה?</div>
         <div class="add-tool-row">
           <input type="text" class="form-input" id="customToolInput" placeholder="לדוגמה: Runway, Higgsfield, Perplexity..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTool();}">
@@ -91,30 +82,18 @@
     <div class="section">
       <div class="section-title"><span class="step">3</span> מנויים מהכיס</div>
       <div class="section-hint">
-        אם אתם משלמים על כלי כלשהו <strong>מהכיס</strong> (ולא דרך המשרד) — נשמח לדעת אילו. חשוב לנו לרכז את התשלומים ולכסות אתכם.
+        אם אתם משלמים על כלי כלשהו <strong>מהכיס</strong> (ולא דרך המשרד) — באילו כלים מדובר?
       </div>
       <div class="form-group">
         <textarea class="form-textarea" id="fPaidFromPocket" placeholder="לדוגמה: ChatGPT Plus, Midjourney standard. או 'אין' אם הכל דרך המשרד."></textarea>
       </div>
     </div>
 
-    <!-- Section 4: Pain points -->
+    <!-- Section 4: Frustrations (open text) -->
     <div class="section">
-      <div class="section-title"><span class="step">4</span> מה מעצבן הכי הרבה</div>
-      <div class="section-hint">סמנו עד 3 דברים שהכי מציקים בעבודה היומיומית עם הכלים.</div>
-      <div class="check-grid" id="painPoints"></div>
-
-      <div class="form-group" style="margin-top:18px;">
-        <label class="form-label">כלי אחד שאתם חולמים עליו ואין לכם גישה</label>
-        <input type="text" class="form-input" id="fDreamTool" placeholder="לדוגמה: Runway Gen-4, Veo 3, Cursor Pro...">
-      </div>
-    </div>
-
-    <!-- Section 5: Free text -->
-    <div class="section">
-      <div class="section-title"><span class="step">5</span> משהו שלא שאלנו?</div>
-      <div class="section-hint">מקום פתוח — תסכולים, רעיונות, בקשות, כל מה שעולה.</div>
-      <textarea class="form-textarea" id="fFreeText" placeholder="כתבו כל מה שעולה. אופציונלי." style="min-height:120px;"></textarea>
+      <div class="section-title"><span class="step">4</span> מה מפריע / חסר / מתסכל</div>
+      <div class="section-hint">מה מפריע לכם, חסר לכם או מתסכל אתכם בעבודה היומיומית עם כלי AI?</div>
+      <textarea class="form-textarea" id="fFrustrations" placeholder="כתבו כל מה שעולה — אופציונלי, אבל מאוד נעזר בזה." style="min-height:130px;"></textarea>
     </div>
 
     <div class="submit-bar">
@@ -124,7 +103,7 @@
     </div>
   </div>
 
-  <!-- ===== Success screen (hidden until submit) ===== -->
+  <!-- Success screen -->
   <div id="successContainer" style="display:none;">
     <div class="success-card">
       <div class="success-icon">✓</div>
@@ -141,20 +120,26 @@ document.getElementById('appTitle').textContent    = CONFIG.APP_NAME;
 document.getElementById('appSubtitle').textContent = CONFIG.APP_SUBTITLE;
 warmupServer();
 
-// State — one entry per tool. Custom tools get added to this list.
+// ── Tool state ─────────────────────────────────────────
 let toolsState = CONFIG.CORE_TOOLS.map(t => ({
   name: t.name,
-  category: t.category,
+  categories: [...t.categories],
   emoji: t.emoji,
   is_custom: false,
-  active: false,             // "yes I use this"
+  active: false,
   usage_level: 'never',
   effectiveness: 0,
   daily_output: 0
 }));
 
-// ── Render pills (team + ai_level) ──────────────────────
-function renderPills(containerId, options, stateKey, valueKey) {
+function isChatOnly(tool) {
+  return tool.categories &&
+         tool.categories.length === 1 &&
+         tool.categories[0] === 'כתיבה וצ׳אט';
+}
+
+// ── Render pills (department + ai_level) ──────────────
+function renderPills(containerId, options) {
   const el = document.getElementById(containerId);
   el.innerHTML = options.map((opt, i) => {
     const value = typeof opt === 'string' ? opt : opt.value;
@@ -166,41 +151,43 @@ function renderPills(containerId, options, stateKey, valueKey) {
     `;
   }).join('');
 }
-renderPills('teamPills', CONFIG.TEAMS);
+renderPills('deptPills', CONFIG.DEPARTMENTS);
 renderPills('aiLevelPills', CONFIG.AI_LEVELS);
 
-// ── Render pain points ──────────────────────────────────
-function renderPainPoints() {
-  const el = document.getElementById('painPoints');
-  el.innerHTML = CONFIG.PAIN_POINTS.map((p, i) => `
-    <label class="check-item">
-      <input type="checkbox" value="${escapeHtml(p)}" onchange="updateCheckedClass(this); limitPainPoints();">
-      <span>${escapeHtml(p)}</span>
-    </label>
-  `).join('');
-}
-renderPainPoints();
-
-function updateCheckedClass(input) {
-  input.closest('.check-item').classList.toggle('selected', input.checked);
-}
-function limitPainPoints() {
-  const checked = document.querySelectorAll('#painPoints input:checked');
-  if (checked.length > 3) {
-    const last = checked[checked.length - 1];
-    last.checked = false;
-    updateCheckedClass(last);
-    showToast('עד 3 בחירות בלבד', 'warning', 2000);
-  }
-}
-
-// ── Render tool cards ──────────────────────────────────
+// ── Render tool cards, grouped by category ────────────
 function renderTools() {
   const el = document.getElementById('toolsList');
-  el.innerHTML = toolsState.map((t, i) => renderToolCard(t, i)).join('');
+  const indexed = toolsState.map((t, i) => ({ t, i }));
+
+  // One section per core category
+  let html = CONFIG.CATEGORIES.map(cat => {
+    const inCat = indexed.filter(({ t }) =>
+      !t.is_custom && t.categories && t.categories[0] === cat);
+    if (!inCat.length) return '';
+    return `
+      <div class="tool-category-section">
+        <h3 class="category-heading">${escapeHtml(cat)}</h3>
+        ${inCat.map(({ t, i }) => renderToolCard(t, i)).join('')}
+      </div>
+    `;
+  }).join('');
+
+  // Custom tools appended at the bottom
+  const customs = indexed.filter(({ t }) => t.is_custom);
+  if (customs.length) {
+    html += `
+      <div class="tool-category-section">
+        <h3 class="category-heading">כלים נוספים</h3>
+        ${customs.map(({ t, i }) => renderToolCard(t, i)).join('')}
+      </div>
+    `;
+  }
+  el.innerHTML = html;
 }
 
 function renderToolCard(t, i) {
+  const hideOutput = isChatOnly(t);
+
   const ratingButtons = [1,2,3,4,5].map(n => `
     <button type="button" class="rating-btn ${t.effectiveness === n ? 'selected' : ''}"
             onclick="setEffectiveness(${i}, ${n})">${n}</button>
@@ -221,14 +208,28 @@ function renderToolCard(t, i) {
     ? `<button type="button" class="tool-remove" onclick="removeCustomTool(${i})">✕ הסר</button>`
     : '';
 
+  const categoryTags = (t.categories || []).slice(1).map(c =>
+    `<span class="tool-category-tag">+ ${escapeHtml(c)}</span>`
+  ).join('');
+
+  const outputField = hideOutput ? '' : `
+    <div class="tool-field">
+      <div class="tool-field-label">כמות תוצרים ממוצעת ביום פעיל (כולל ניסיונות וזבל)</div>
+      <input type="number" class="form-input" min="0" step="1" style="max-width:200px;"
+             value="${t.daily_output || ''}"
+             placeholder="מספר"
+             onchange="setDailyOutput(${i}, this.value)">
+    </div>
+  `;
+
   return `
     <div class="tool-card ${t.active ? 'active' : ''}" id="tool_${i}">
       <div class="tool-header">
         <div class="tool-emoji">${t.emoji || '🛠️'}</div>
-        <div>
+        <div class="tool-name-wrap">
           <div class="tool-name">${escapeHtml(t.name)}</div>
+          ${categoryTags ? `<div class="tool-category-tags">${categoryTags}</div>` : ''}
         </div>
-        <div class="tool-category">${escapeHtml(t.category || 'מותאם')}</div>
         ${customRemove}
         <div class="use-toggle">
           <input type="radio" name="use_${i}" id="use_${i}_no" class="pill-radio"
@@ -254,13 +255,7 @@ function renderToolCard(t, i) {
           </div>
         </div>
 
-        <div class="tool-field">
-          <div class="tool-field-label">כמות תוצרים ממוצעת ביום פעיל (כולל ניסיונות וזבל)</div>
-          <input type="number" class="form-input" min="0" step="1" style="max-width:200px;"
-                 value="${t.daily_output || ''}"
-                 placeholder="מספר"
-                 onchange="setDailyOutput(${i}, this.value)">
-        </div>
+        ${outputField}
       </div>
     </div>
   `;
@@ -287,7 +282,6 @@ function setUsage(i, value) {
 
 function setEffectiveness(i, n) {
   toolsState[i].effectiveness = n;
-  // Update visually without full re-render so we don't lose number input focus
   const card = document.getElementById('tool_' + i);
   card.querySelectorAll('.rating-btn').forEach((b, idx) => {
     b.classList.toggle('selected', idx + 1 === n);
@@ -311,7 +305,7 @@ function addCustomTool() {
   }
   toolsState.push({
     name,
-    category: 'מותאם',
+    categories: [],
     emoji: '🛠️',
     is_custom: true,
     active: true,
@@ -321,7 +315,6 @@ function addCustomTool() {
   });
   input.value = '';
   renderTools();
-  // Scroll to the new tool
   setTimeout(() => {
     const last = document.querySelector('#toolsList .tool-card:last-of-type');
     if (last) last.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -336,28 +329,27 @@ function removeCustomTool(i) {
 // ── Submit ─────────────────────────────────────────────
 async function submitSurvey() {
   const name = document.getElementById('fName').value.trim();
-  const role = document.getElementById('fRole').value.trim();
+  const department = document.querySelector('input[name="deptPills"]:checked')?.value || '';
 
-  if (!name || !role) {
-    showToast('יש למלא שם ותפקיד', 'error');
-    document.getElementById(!name ? 'fName' : 'fRole').focus();
+  if (!name) {
+    showToast('יש למלא שם', 'error');
+    document.getElementById('fName').focus();
+    return;
+  }
+  if (!department) {
+    showToast('יש לבחור מחלקה', 'error');
     return;
   }
 
-  // Validate that every "active" tool has a rating + frequency
   const incomplete = toolsState.find(t => t.active && (!t.effectiveness || !t.usage_level || t.usage_level === 'never'));
   if (incomplete) {
     showToast(`חסרים פרטים עבור ${incomplete.name}: דירוג ותדירות`, 'error');
     return;
   }
 
-  const team    = document.querySelector('input[name="teamPills"]:checked')?.value || '';
-  const aiLevel = document.querySelector('input[name="aiLevelPills"]:checked')?.value || '';
-  const painPoints = Array.from(document.querySelectorAll('#painPoints input:checked'))
-    .map(c => c.value).join(' | ');
+  const aiLevel        = document.querySelector('input[name="aiLevelPills"]:checked')?.value || '';
   const paidFromPocket = document.getElementById('fPaidFromPocket').value.trim();
-  const dreamTool      = document.getElementById('fDreamTool').value.trim();
-  const freeText       = document.getElementById('fFreeText').value.trim();
+  const frustrations   = document.getElementById('fFrustrations').value.trim();
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -365,12 +357,11 @@ async function submitSurvey() {
 
   try {
     const res = await apiCall('submitSurvey', {
-      name, role, team,
+      name,
+      department,
       ai_level: aiLevel,
       paid_from_pocket: paidFromPocket,
-      pain_points: painPoints,
-      dream_tool: dreamTool,
-      free_text: freeText,
+      frustrations,
       tools: JSON.stringify(toolsState.map(t => ({
         name: t.name,
         is_custom: t.is_custom,

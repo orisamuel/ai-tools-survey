@@ -32,15 +32,12 @@
     </div>
   </header>
 
-  <!-- Top stats -->
   <div class="stats-grid" id="statsGrid"></div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" data-tab="tools" onclick="switchTab('tools')">כלים — סיכום</button>
     <button class="tab" data-tab="responses" onclick="switchTab('responses')">תשובות פרטניות</button>
-    <button class="tab" data-tab="pain" onclick="switchTab('pain')">כאבים ותשלומים</button>
-    <button class="tab" data-tab="free" onclick="switchTab('free')">טקסט חופשי</button>
+    <button class="tab" data-tab="frustrations" onclick="switchTab('frustrations')">תסכולים ותשלומים</button>
   </div>
 
   <!-- Tab: tools summary -->
@@ -58,34 +55,22 @@
     <div class="section">
       <div style="display:flex; gap:12px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
         <h3 style="margin:0;">תשובות פרטניות</h3>
-        <input type="text" class="form-input" id="searchInput" placeholder="חיפוש לפי שם/תפקיד/צוות..."
+        <input type="text" class="form-input" id="searchInput" placeholder="חיפוש לפי שם/מחלקה..."
                style="max-width:320px;" oninput="renderResponses()">
       </div>
       <div id="responsesList"></div>
     </div>
   </div>
 
-  <!-- Tab: pain points + payments -->
-  <div class="tab-panel" id="panel-pain" style="display:none;">
+  <!-- Tab: frustrations + payments -->
+  <div class="tab-panel" id="panel-frustrations" style="display:none;">
     <div class="section">
-      <h3 style="margin-bottom:14px;">פוינטים כואבים — דירוג לפי כמות אזכורים</h3>
-      <table class="tool-stats-table" id="painTable"></table>
+      <h3 style="margin-bottom:14px;">תסכולים — מה מפריע / חסר / מתסכל</h3>
+      <div id="frustrationsList"></div>
     </div>
     <div class="section" style="margin-top:18px;">
-      <h3 style="margin-bottom:14px;">מנויים מהכיס — מה אנשים משלמים מעצמם</h3>
+      <h3 style="margin-bottom:14px;">מנויים מהכיס — מה משלמים מעצמם</h3>
       <div id="paymentsList"></div>
-    </div>
-    <div class="section" style="margin-top:18px;">
-      <h3 style="margin-bottom:14px;">כלי חלום — מה אנשים רוצים ואין להם</h3>
-      <div id="dreamList"></div>
-    </div>
-  </div>
-
-  <!-- Tab: free text -->
-  <div class="tab-panel" id="panel-free" style="display:none;">
-    <div class="section">
-      <h3 style="margin-bottom:14px;">טקסט חופשי</h3>
-      <div id="freeTextList"></div>
     </div>
   </div>
 
@@ -124,10 +109,8 @@ function renderAll() {
   renderStats();
   renderToolStats();
   renderResponses();
-  renderPain();
+  renderFrustrations();
   renderPayments();
-  renderDream();
-  renderFreeText();
 }
 
 // ── Top KPIs ───────────────────────────────────────────
@@ -158,7 +141,6 @@ function renderStats() {
 
 // ── Tool stats table ───────────────────────────────────
 function renderToolStats() {
-  // Aggregate per tool_name
   const agg = {};
   DATA.tools.forEach(t => {
     const active = USAGE_WEIGHTS[t.usage_level] > 0;
@@ -184,7 +166,6 @@ function renderToolStats() {
 
   const totalRespondents = DATA.responses.length || 1;
   const list = Object.values(agg).sort((a, b) => b.users - a.users);
-
   const maxUsers = Math.max(1, ...list.map(t => t.users));
 
   let html = `
@@ -231,7 +212,7 @@ function renderResponses() {
   const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const list = DATA.responses.filter(r =>
     !search ||
-    (r.name + ' ' + r.role + ' ' + r.team + ' ' + r.ai_level).toLowerCase().includes(search)
+    (r.name + ' ' + r.department + ' ' + r.ai_level).toLowerCase().includes(search)
   );
 
   if (!list.length) {
@@ -252,49 +233,31 @@ function renderResponses() {
       <div class="response-row">
         <div class="response-head">
           <div>
-            <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
-            <div class="response-meta">${escapeHtml(r.team || '—')} · רמת AI: ${escapeHtml(r.ai_level || '—')} · ${escapeHtml(r.timestamp)}</div>
+            <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.department || '—')}</span></div>
+            <div class="response-meta">רמת AI: ${escapeHtml(r.ai_level || '—')} · ${escapeHtml(r.timestamp)}</div>
           </div>
         </div>
         <div class="response-detail" style="margin-top:8px;">
           <strong>כלים פעילים:</strong> ${toolTags || '<span style="color:var(--text-muted);">לא סומנו</span>'}
         </div>
         ${r.paid_from_pocket ? `<div class="response-detail" style="margin-top:6px;"><strong>מהכיס:</strong> ${escapeHtml(r.paid_from_pocket)}</div>` : ''}
-        ${r.pain_points ? `<div class="response-detail" style="margin-top:6px;"><strong>כאבים:</strong> ${escapeHtml(r.pain_points)}</div>` : ''}
-        ${r.dream_tool ? `<div class="response-detail" style="margin-top:6px;"><strong>חולם על:</strong> ${escapeHtml(r.dream_tool)}</div>` : ''}
-        ${r.free_text ? `<div class="response-detail" style="margin-top:6px;"><strong>חופשי:</strong> ${escapeHtml(r.free_text)}</div>` : ''}
+        ${r.frustrations ? `<div class="response-detail" style="margin-top:6px;white-space:pre-wrap;"><strong>תסכולים:</strong> ${escapeHtml(r.frustrations)}</div>` : ''}
       </div>
     `;
   }).join('');
 }
 
-// ── Pain points aggregation ────────────────────────────
-function renderPain() {
-  const counts = {};
-  DATA.responses.forEach(r => {
-    if (!r.pain_points) return;
-    r.pain_points.split('|').map(s => s.trim()).filter(Boolean).forEach(p => {
-      counts[p] = (counts[p] || 0) + 1;
-    });
-  });
-  const list = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  if (!list.length) {
-    document.getElementById('painTable').innerHTML = '<tbody><tr><td>אין נתונים.</td></tr></tbody>';
-    return;
-  }
-  const max = list[0][1];
-  document.getElementById('painTable').innerHTML = `
-    <thead><tr><th>כאב</th><th>אזכורים</th><th></th></tr></thead>
-    <tbody>
-      ${list.map(([p, c]) => `
-        <tr>
-          <td>${escapeHtml(p)}</td>
-          <td><strong>${c}</strong></td>
-          <td><span class="bar" style="width:${Math.round(c / max * 200)}px;"></span></td>
-        </tr>
-      `).join('')}
-    </tbody>
-  `;
+// ── Frustrations (open text) ──────────────────────────
+function renderFrustrations() {
+  const list = DATA.responses
+    .filter(r => r.frustrations && r.frustrations.trim())
+    .map(r => `
+      <div class="response-row">
+        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.department || '—')}</span></div>
+        <div class="response-detail" style="white-space:pre-wrap;">${escapeHtml(r.frustrations)}</div>
+      </div>
+    `).join('');
+  document.getElementById('frustrationsList').innerHTML = list || '<p style="color:var(--text-muted);">אין תסכולים שדווחו.</p>';
 }
 
 function renderPayments() {
@@ -305,35 +268,11 @@ function renderPayments() {
     })
     .map(r => `
       <div class="response-row">
-        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
+        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.department || '—')}</span></div>
         <div class="response-detail">${escapeHtml(r.paid_from_pocket)}</div>
       </div>
     `).join('');
   document.getElementById('paymentsList').innerHTML = list || '<p style="color:var(--text-muted);">לא צוין שאף אחד משלם מהכיס.</p>';
-}
-
-function renderDream() {
-  const list = DATA.responses
-    .filter(r => r.dream_tool && r.dream_tool.trim())
-    .map(r => `
-      <div class="response-row">
-        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
-        <div class="response-detail">${escapeHtml(r.dream_tool)}</div>
-      </div>
-    `).join('');
-  document.getElementById('dreamList').innerHTML = list || '<p style="color:var(--text-muted);">אין כלי חלום שצוין.</p>';
-}
-
-function renderFreeText() {
-  const list = DATA.responses
-    .filter(r => r.free_text && r.free_text.trim())
-    .map(r => `
-      <div class="response-row">
-        <div class="response-name">${escapeHtml(r.name)} <span style="color:var(--text-muted);font-weight:400;">— ${escapeHtml(r.role)}</span></div>
-        <div class="response-detail" style="white-space:pre-wrap;">${escapeHtml(r.free_text)}</div>
-      </div>
-    `).join('');
-  document.getElementById('freeTextList').innerHTML = list || '<p style="color:var(--text-muted);">אין טקסט חופשי.</p>';
 }
 
 // ── Tabs ───────────────────────────────────────────────
@@ -346,23 +285,22 @@ function switchTab(name) {
 
 // ── CSV export ─────────────────────────────────────────
 function exportCsv() {
-  // Wide format: one row per response, with all core tools as columns
   const coreTools = DATA.core_tools || [];
   const customToolNames = Array.from(new Set(
     DATA.tools.filter(t => t.is_custom).map(t => t.tool_name)
   ));
   const allTools = [...coreTools, ...customToolNames];
 
-  const headers = ['timestamp', 'name', 'role', 'team', 'ai_level',
-    'paid_from_pocket', 'pain_points', 'dream_tool', 'free_text'];
+  const headers = ['timestamp', 'name', 'department', 'ai_level',
+    'paid_from_pocket', 'frustrations'];
   allTools.forEach(tn => {
     headers.push(`${tn}__usage`, `${tn}__effectiveness`, `${tn}__output`);
   });
 
   const lines = [headers.join(',')];
   DATA.responses.forEach(r => {
-    const row = [r.timestamp, r.name, r.role, r.team, r.ai_level,
-      r.paid_from_pocket, r.pain_points, r.dream_tool, r.free_text];
+    const row = [r.timestamp, r.name, r.department, r.ai_level,
+      r.paid_from_pocket, r.frustrations];
     allTools.forEach(tn => {
       const t = DATA.tools.find(x => x.response_id === r.id && x.tool_name === tn);
       row.push(t ? t.usage_level : '');

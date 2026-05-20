@@ -249,13 +249,28 @@ h1, h2, h3, h4 { font-weight: 800; }
   border-color: var(--accent); background: var(--accent-glow);
 }
 
+/* ── Tool category sections ─────────────────────────── */
+.tool-category-section { margin-bottom: 22px; }
+.tool-category-section:last-child { margin-bottom: 0; }
+.category-heading {
+  font-size: 1.02rem; font-weight: 700; color: var(--accent-bright);
+  margin: 0 0 12px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex; align-items: center; gap: 8px;
+}
+.category-heading::before {
+  content: ''; width: 4px; height: 18px;
+  background: var(--accent); border-radius: 2px;
+}
+
 /* ── Tool card (the heart of the survey) ──────────────── */
 .tool-card {
   background: var(--bg-elevated);
   border: 1.5px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 18px 20px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   transition: var(--t-med);
 }
 .tool-card.active {
@@ -266,19 +281,20 @@ h1, h2, h3, h4 { font-weight: 800; }
   display: flex; align-items: center; gap: 14px;
   margin-bottom: 14px;
 }
-.tool-emoji { font-size: 1.8rem; line-height: 1; }
+.tool-emoji { font-size: 1.8rem; line-height: 1; flex-shrink: 0; }
+.tool-name-wrap { display: flex; flex-direction: column; gap: 3px; margin-left: auto; }
 .tool-name { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
-.tool-category {
-  font-size: 0.75rem; color: var(--text-muted);
-  padding: 2px 9px; background: var(--glass-bg);
-  border-radius: var(--radius-pill); margin-right: auto;
+.tool-category-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tool-category-tag {
+  font-size: 0.7rem; color: var(--text-muted);
+  padding: 1px 8px; background: var(--glass-bg);
+  border-radius: var(--radius-pill);
 }
 .tool-remove {
   background: var(--danger-bg); color: var(--danger);
   border: 1px solid rgba(239,68,68,0.4);
   border-radius: var(--radius-pill);
   padding: 4px 10px; font-size: 0.78rem; font-weight: 700;
-  margin-right: 6px;
 }
 
 .tool-body { display: none; }

@@ -15,17 +15,22 @@ const CONFIG = {
     APP_NAME:     'סקר שימוש בכלי AI',
     APP_SUBTITLE: 'ארבעים ושתיים — סוכנות דיגיטל ופרסום',
 
-    // ── Survey config ────────────────────────────────────────
+    // ── Tool categories (order = display order in survey) ────
+    CATEGORIES: ['כתיבה וצ׳אט', 'תמונות', 'וידאו', 'סאונד'],
+
+    // ── Core tools ───────────────────────────────────────────
+    // categories[0] determines which section the tool appears under.
+    // Tools whose ONLY category is 'כתיבה וצ׳אט' skip the quantity question.
     // Must match CORE_TOOLS in appscript.gs.
     CORE_TOOLS: [
-        { name: 'ChatGPT',    category: 'טקסט',  emoji: '💬' },
-        { name: 'Claude',     category: 'טקסט',  emoji: '🤖' },
-        { name: 'Gemini',     category: 'טקסט',  emoji: '✨' },
-        { name: 'Midjourney', category: 'תמונה', emoji: '🎨' },
-        { name: 'Hedra',      category: 'וידאו', emoji: '🎬' },
-        { name: 'Kling',      category: 'וידאו', emoji: '🎞️' },
-        { name: 'ElevenLabs', category: 'אודיו', emoji: '🎤' },
-        { name: 'Suno',       category: 'אודיו', emoji: '🎵' },
+        { name: 'ChatGPT',           categories: ['כתיבה וצ׳אט', 'תמונות'],            emoji: '💬' },
+        { name: 'Claude',            categories: ['כתיבה וצ׳אט'],                       emoji: '🤖' },
+        { name: 'כלי ה-AI של גוגל',  categories: ['כתיבה וצ׳אט', 'תמונות', 'וידאו'],   emoji: '✨' },
+        { name: 'Midjourney',        categories: ['תמונות'],                            emoji: '🎨' },
+        { name: 'Hedra',             categories: ['וידאו'],                             emoji: '🎬' },
+        { name: 'Kling',             categories: ['וידאו'],                             emoji: '🎞️' },
+        { name: 'ElevenLabs',        categories: ['סאונד'],                             emoji: '🎤' },
+        { name: 'Suno',              categories: ['סאונד'],                             emoji: '🎵' },
     ],
 
     USAGE_LEVELS: [
@@ -44,13 +49,13 @@ const CONFIG = {
         5: 'אי אפשר בלי',
     },
 
-    TEAMS: [
-        'קריאייטיב / עיצוב',
-        'פרודקשן / וידאו',
-        'סטרטגיה / אקאונט / קופי',
-        'אופרציות / טראפיק / משרד',
-        'מנהל/ת / ראש צוות',
-        'אחר',
+    DEPARTMENTS: [
+        'קריאייטיב',
+        'וידאו',
+        'ניהול לקוח',
+        'סטודיו',
+        'הנהלה בכירה',
+        'מחלקת מדיה ותוכן',
     ],
 
     AI_LEVELS: [
@@ -58,17 +63,6 @@ const CONFIG = {
         'בסיסי — משתמש/ת בכלי-שניים',
         'מתקדם/ת — חי/ה את זה יומיום',
         'אקספרט/ית — מלמד/ת אחרים',
-    ],
-
-    PAIN_POINTS: [
-        'משלם/ת על מנויים שכמעט לא נוגע/ת בהם',
-        'חסר לי כלי שיש לקולגה אבל אין לי',
-        'עובד/ת בין הרבה טאבים, מאבד/ת את עצמי',
-        'האסטים הולכים לאיבוד, אין סידור',
-        'אין דרך להראות לקולגה איך הגעתי לתוצאה',
-        'בריפים סודיים זורמים לכלי לא ברור',
-        'חיוב פר לקוח / פרויקט בלתי אפשרי',
-        'קימוץ ב-credits — שולח/ת לכלי חלש כי חבל',
     ],
 
     // ── Theme ────────────────────────────────────────────────

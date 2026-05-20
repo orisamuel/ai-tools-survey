@@ -18,7 +18,7 @@
 
 // Core tool list — must match the frontend list in config.js.
 // Adding a tool? Add it here AND in config.js CORE_TOOLS.
-const CORE_TOOLS = ['ChatGPT', 'Claude', 'Gemini', 'Midjourney', 'Hedra', 'Kling', 'ElevenLabs', 'Suno'];
+const CORE_TOOLS = ['ChatGPT', 'Claude', 'כלי ה-AI של גוגל', 'Midjourney', 'Hedra', 'Kling', 'ElevenLabs', 'Suno'];
 
 // ============================================================
 // HELPERS
@@ -70,13 +70,13 @@ function shortId() {
 
 // ============================================================
 // RESPONSES (one row per submission)
-// Schema: id(0), timestamp(1), name(2), role(3), team(4), ai_level(5),
-//         paid_from_pocket(6), pain_points(7), dream_tool(8), free_text(9)
+// Schema: id(0), timestamp(1), name(2), department(3), ai_level(4),
+//         paid_from_pocket(5), frustrations(6)
 // ============================================================
 
 const RESPONSES_HEADERS = [
-  'id', 'timestamp', 'name', 'role', 'team', 'ai_level',
-  'paid_from_pocket', 'pain_points', 'dream_tool', 'free_text'
+  'id', 'timestamp', 'name', 'department', 'ai_level',
+  'paid_from_pocket', 'frustrations'
 ];
 
 // ============================================================
@@ -86,7 +86,7 @@ const RESPONSES_HEADERS = [
 // ============================================================
 // usage_level:  'never' | 'rarely' | 'weekly' | 'daily' | 'heavy'
 // effectiveness: 1..5
-// daily_output: integer (avg outputs per active day; 0 if never)
+// daily_output: integer (avg outputs per active day; 0 if never or chat-only)
 // ============================================================
 
 const TOOLRESP_HEADERS = [
@@ -95,16 +95,14 @@ const TOOLRESP_HEADERS = [
 ];
 
 // ============================================================
-// SUBMIT SURVEY (the only "write" the form uses)
+// SUBMIT SURVEY
 // ============================================================
 //
 // Expects params:
-//   name, role, team, ai_level         (string)
-//   paid_from_pocket                   (string — free text, "אין"/CSV of tools)
-//   pain_points                        (string — CSV)
-//   dream_tool                         (string)
-//   free_text                          (string)
-//   tools                              (JSON string — array of tool objects)
+//   name, department, ai_level       (string)
+//   paid_from_pocket                 (string — free text)
+//   frustrations                     (string — free text)
+//   tools                            (JSON string — array of tool objects)
 //
 // tools[i] = {
 //   name: 'ChatGPT',
@@ -117,8 +115,11 @@ const TOOLRESP_HEADERS = [
 
 function submitSurvey(data) {
   try {
-    if (!data.name || !data.role) {
-      return { success: false, message: 'שם ותפקיד הם שדות חובה' };
+    if (!data.name || !String(data.name).trim()) {
+      return { success: false, message: 'שם הוא שדה חובה' };
+    }
+    if (!data.department || !String(data.department).trim()) {
+      return { success: false, message: 'יש לבחור מחלקה' };
     }
 
     const responses = ensureSheet('responses', RESPONSES_HEADERS);
@@ -130,13 +131,10 @@ function submitSurvey(data) {
     responses.appendRow([
       id, ts,
       String(data.name).trim(),
-      String(data.role).trim(),
-      data.team || '',
+      String(data.department).trim(),
       data.ai_level || '',
       data.paid_from_pocket || '',
-      data.pain_points || '',
-      data.dream_tool || '',
-      data.free_text || ''
+      data.frustrations || ''
     ]);
 
     let tools = [];
@@ -178,13 +176,10 @@ function getAllResponses() {
       id: r[0],
       timestamp: r[1] instanceof Date ? fmtTimestamp(r[1]) : String(r[1]),
       name: r[2] || '',
-      role: r[3] || '',
-      team: r[4] || '',
-      ai_level: r[5] || '',
-      paid_from_pocket: r[6] || '',
-      pain_points: r[7] || '',
-      dream_tool: r[8] || '',
-      free_text: r[9] || ''
+      department: r[3] || '',
+      ai_level: r[4] || '',
+      paid_from_pocket: r[5] || '',
+      frustrations: r[6] || ''
     }));
 
     const tools = toolData.slice(1).filter(r => r[0]).map(r => ({
@@ -249,18 +244,15 @@ function doPost(e) {
     switch (action) {
 
       case 'ping':
-        return jsonResponse({ success: true, version: 'v1', core_tools: CORE_TOOLS });
+        return jsonResponse({ success: true, version: 'v2', core_tools: CORE_TOOLS });
 
       case 'submitSurvey':
         return jsonResponse(submitSurvey({
           name: p.name,
-          role: p.role,
-          team: p.team,
+          department: p.department,
           ai_level: p.ai_level,
           paid_from_pocket: p.paid_from_pocket,
-          pain_points: p.pain_points,
-          dream_tool: p.dream_tool,
-          free_text: p.free_text,
+          frustrations: p.frustrations,
           tools: p.tools
         }));
 
