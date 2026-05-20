@@ -5,7 +5,7 @@
 const CONFIG = {
 
     // ── Google Apps Script web-app URL ───────────────────────
-    SCRIPT_URL: 'PASTE_YOUR_DEPLOYED_SCRIPT_URL_HERE',
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxlWJlUyauP_s5aHB65jBLCQZvgq-QFDoItQWipjFU63JxHkvlSmECciEZLlp99omUQ3g/exec',
 
     // ── Direct link to the underlying Sheet (for "Open Sheet" buttons) ─
     SHEETS_URL: 'https://docs.google.com/spreadsheets/d/PASTE_SHEET_ID/edit',
