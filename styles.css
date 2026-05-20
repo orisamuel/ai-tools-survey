@@ -81,17 +81,81 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   transition: background 0.3s var(--ease-smooth), color 0.3s var(--ease-smooth);
-}
-body::before {
-  content: ''; position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
-  width: 700px; height: 350px;
-  background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
+  isolation: isolate;       /* keeps .bg-blobs (z-index:-1) above bg color, below content */
+  overflow-x: hidden;        /* prevent horizontal scroll from animating blobs */
 }
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-bright); }
 button { cursor: pointer; font-family: inherit; border: none; outline: none; }
 h1, h2, h3, h4 { font-weight: 800; }
+
+/* ── Animated background blobs ──────────────────────────
+   Injected by utils.js as <div class="bg-blobs"> at the top of <body>.
+   Four colored circles, blurred, drifting on independent loops.
+   Sits behind everything via z-index:-1 + body isolation. */
+.bg-blobs {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.blob-1 {
+  width: 520px; height: 520px;
+  background: #F59E0B;
+  top: -160px; right: -80px;
+  animation: blob-drift-1 24s ease-in-out infinite alternate;
+}
+.blob-2 {
+  width: 440px; height: 440px;
+  background: #EC4899;
+  top: 28%; left: -140px;
+  animation: blob-drift-2 30s ease-in-out infinite alternate;
+}
+.blob-3 {
+  width: 400px; height: 400px;
+  background: #8B5CF6;
+  bottom: -120px; right: 22%;
+  animation: blob-drift-3 26s ease-in-out infinite alternate;
+}
+.blob-4 {
+  width: 360px; height: 360px;
+  background: #06B6D4;
+  top: 58%; right: 42%;
+  animation: blob-drift-4 32s ease-in-out infinite alternate;
+}
+[data-theme="light"] .blob   { opacity: 0.35; filter: blur(110px); }
+[data-theme="light"] .blob-1 { background: #F59E0B; }
+[data-theme="light"] .blob-2 { background: #F472B6; }
+[data-theme="light"] .blob-3 { background: #A78BFA; }
+[data-theme="light"] .blob-4 { background: #67E8F9; }
+
+@keyframes blob-drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-90px, 70px) scale(1.15); }
+}
+@keyframes blob-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(120px, -60px) scale(0.9); }
+}
+@keyframes blob-drift-3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-70px, -100px) scale(1.1); }
+}
+@keyframes blob-drift-4 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(130px, 50px) scale(1.22); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob { animation: none; }
+}
 
 /* ── Loading screen ─────────────────────────────────────── */
 .loading-screen {
@@ -144,6 +208,12 @@ h1, h2, h3, h4 { font-weight: 800; }
   font-size: 1rem;
 }
 .theme-toggle:hover { background: var(--glass-hover); }
+.theme-toggle.floating {
+  position: fixed; top: 16px; left: 16px; z-index: 50;
+  background: var(--bg-surface); backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
+}
 
 /* ── Survey-specific layout ─────────────────────────────── */
 .intro-card {
@@ -163,6 +233,35 @@ h1, h2, h3, h4 { font-weight: 800; }
   background: var(--accent-glow); border-right: 3px solid var(--accent);
   border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.92rem;
 }
+.intro-card .meta-row {
+  margin-top: 12px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem; color: var(--text-secondary);
+}
+
+/* Strong attention callout — used for instructions that MUST be read */
+.callout {
+  margin: 14px 0 4px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--accent-glow), transparent);
+  border: 1.5px solid var(--accent-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-primary); font-size: 0.95rem; line-height: 1.65;
+  position: relative;
+}
+.callout::before {
+  content: '⚠'; position: absolute;
+  top: -12px; right: 16px;
+  background: var(--accent); color: #fff;
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 0.85rem; font-weight: 800;
+  box-shadow: 0 4px 10px var(--accent-glow-lg);
+}
+.callout strong { color: var(--accent-bright); }
 
 /* ── Section card ──────────────────────────────────────── */
 .section {

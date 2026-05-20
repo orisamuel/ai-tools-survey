@@ -16,25 +16,18 @@
   <div class="loading-progress" id="loadingProgress">טוען...</div>
 </div>
 
-<div id="mainContent">
+<button class="theme-toggle floating" id="themeToggle" onclick="toggleTheme()">🌙</button>
 
-  <header class="app-header">
-    <div>
-      <div class="app-title" id="appTitle"></div>
-      <div class="app-subtitle" id="appSubtitle"></div>
-    </div>
-    <div class="header-actions">
-      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
-    </div>
-  </header>
+<div id="mainContent">
 
   <div id="surveyContainer">
 
     <!-- Intro -->
     <div class="intro-card">
       <h1>סקר שימוש בכלי AI במשרד</h1>
-      <p><strong>הקדמה:</strong> על מנת לבחון ולייעל את השימוש ב-AI במשרד, ייצרנו באמצעות כלי AI מתקדמים שאלון על השימוש שלכם בכלי ה-AI השונים — שאתם חייבים למלא עד היום בערב. ומי שלא ימלא — יפוטר.</p>
+      <p>על מנת לבחון ולייעל את השימוש ב-AI במשרד, ייצרנו באמצעות כלי AI מתקדמים שאלון על השימוש שלכם בכלי ה-AI השונים — שאתם חייבים למלא עד היום בערב. ומי שלא ימלא — יפוטר.</p>
       <p>אם יש שאלות, דברו עם אורי.</p>
+      <div class="meta-row">⏱ זמן מילוי — 5–8.5 דקות · פתחתי לזה משימה בבריפו</div>
     </div>
 
     <!-- Section 1: Identity -->
@@ -61,7 +54,10 @@
     <div class="section">
       <div class="section-title"><span class="step">2</span> הכלים</div>
       <div class="section-hint">
-        מחולק לסעיפים לפי סוג השימוש. <strong>אם אתם משתמשים באותו כלי במספר קטגוריות</strong> (למשל מצ׳וטטים עם ג׳מיני וגם מייצרים איתו תמונות) — מלאו אותו <strong>בכל קטגוריה רלוונטית בנפרד</strong>. סמנו "משתמש/ת" רק על מה שאתם באמת נוגעים בו.
+        סמנו "משתמש/ת" רק על כלים שאתם באמת נוגעים בהם.
+      </div>
+      <div class="callout">
+        אם אתם משתמשים <strong>באותו כלי במספר קטגוריות</strong> (למשל מצ׳וטטים עם ג׳מיני וגם מייצרים איתו תמונות) — צריך למלא אותו <strong>בכל קטגוריה רלוונטית בנפרד</strong>.
       </div>
 
       <div id="toolsList"></div>
@@ -87,9 +83,9 @@
 
     <!-- Section 5: Recipe (the fun one) -->
     <div class="section">
-      <div class="section-title"><span class="step">5</span> שאלת בונוס לשבועות 🧀</div>
-      <div class="section-hint">
-        מתכון טוב שאתם מכירים באופן אישי לעוגת גבינה — או איזה משהו טעים ומתוק אחר לשבועות?
+      <div class="section-title" style="margin-bottom:14px;">
+        <span class="step">5</span>
+        <span>מתכון טוב שאתם מכירים באופן אישי לעוגת גבינה — או איזה משהו טעים ומתוק אחר לשבועות? 🧀</span>
       </div>
       <textarea class="form-textarea" id="fRecipe" placeholder="מתכון, רעיון, או לינק לפוסט שאתם אוהבים..." style="min-height:110px;"></textarea>
     </div>
@@ -114,8 +110,6 @@
 
 <script>
 initTheme();
-document.getElementById('appTitle').textContent    = CONFIG.APP_NAME;
-document.getElementById('appSubtitle').textContent = CONFIG.APP_SUBTITLE;
 warmupServer();
 
 // ── Tool state: one entry per (tool, category) pair ───

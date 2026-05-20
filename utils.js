@@ -74,6 +74,29 @@ async function apiCall(action, params = {}) {
     });
 })();
 
+// ── Animated background blobs ──────────────────────────────
+// Injected into every page (this file is loaded everywhere).
+// CSS lives in styles.css under .bg-blobs / .blob / @keyframes.
+
+(function initBgBlobs() {
+    if (typeof document === 'undefined') return;
+    const inject = () => {
+        if (document.querySelector('.bg-blobs')) return;
+        const container = document.createElement('div');
+        container.className = 'bg-blobs';
+        container.setAttribute('aria-hidden', 'true');
+        container.innerHTML =
+            '<div class="blob blob-1"></div>' +
+            '<div class="blob blob-2"></div>' +
+            '<div class="blob blob-3"></div>' +
+            '<div class="blob blob-4"></div>';
+        // Insert as first child so it never accidentally lands on top of anything.
+        document.body.insertBefore(container, document.body.firstChild);
+    };
+    if (document.body) inject();
+    else document.addEventListener('DOMContentLoaded', inject);
+})();
+
 function showToast(message, type = 'info', duration = 3500) {
     let container = document.getElementById('toastContainer');
     if (!container) {
